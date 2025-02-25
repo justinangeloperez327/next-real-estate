@@ -17,10 +17,10 @@ interface QueryParams {
 export default async function Properties({
     searchParams
 }: {
-    searchParams: QueryParams
+    searchParams: Promise<QueryParams>
 }) {
-
-    const properties = await getProperties(searchParams) || [];
+    const params = await searchParams;
+    const properties = await getProperties(params) || [];
 
     return (
         <div className=''>

@@ -1,19 +1,18 @@
 "use server"
 
 import { createClient } from "@/utils/supabase/server"
-import { revalidatePath } from "next/cache"
-import { Property } from "@/lib/types"
 
-export async function getProperties(queryParams?: {
+interface QueryParams {
     search?: string;
-    propertyType?: string;
+    property_type?: string;
     beds?: string;
     baths?: string;
     carpark?: string;
     minPrice?: string;
     maxPrice?: string;
-    pool?: string;
-}) {
+}
+
+export async function getProperties(queryParams?: QueryParams) {
 
 
     const supabase = createClient()
@@ -26,9 +25,9 @@ export async function getProperties(queryParams?: {
             console.log(params?.search)
             query = query.or(`title.ilike.%${params?.search}%,address.ilike.%${params?.search}%`)
         }
-        if (params?.propertyType) {
-            console.log(params?.propertyType)
-            query = query.ilike('property_type', params?.propertyType)
+        if (params?.property_type) {
+            console.log(params?.property_type)
+            query = query.ilike('property_type', params?.property_type)
         }
         if (params?.beds) {
             query = query.gte('beds', parseInt(params?.beds))

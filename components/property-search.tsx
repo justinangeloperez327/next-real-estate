@@ -12,7 +12,7 @@ const PropertySearch = () => {
 
     const [formData, setFormData] = useState({
         search: '',
-        propertyType: '',
+        property_type: '',
         beds: '',
         baths: '',
         carpark: '',
@@ -25,7 +25,7 @@ const PropertySearch = () => {
         if (searchParams) {
             setFormData({
                 search: searchParams.get('search') || '',
-                propertyType: searchParams.get('propertyType') || '',
+                property_type: searchParams.get('property_type') || '',
                 beds: searchParams.get('beds') || '',
                 baths: searchParams.get('baths') || '',
                 carpark: searchParams.get('carpark') || '',
@@ -78,9 +78,9 @@ const PropertySearch = () => {
                                     "focus:outline-none data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-white/25 capitalize",
                                     "*:text-black "
                                 )}
-                                value={formData.propertyType}
+                                value={formData.property_type}
                                 onChange={handleChange}
-                                name="propertyType"
+                                name="property_type"
                                 aria-label="Property Type"
                             >
                                 <option value="">
