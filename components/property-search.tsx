@@ -6,7 +6,6 @@ import { priceRange, propertyFeatures, propertyTypes } from '@/lib/constants';
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-
 const PropertySearch = () => {
     const searchParams = useSearchParams()
 
