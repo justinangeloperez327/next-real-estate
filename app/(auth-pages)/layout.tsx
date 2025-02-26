@@ -26,7 +26,7 @@ export default async function Layout({
         <p>
           Copyright Justin Angelo Perez 2025
         </p>
-        <ThemeSwitcher />
+        {/* <ThemeSwitcher /> */}
       </footer>
     </ThemeProvider>
 
