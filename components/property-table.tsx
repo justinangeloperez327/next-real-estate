@@ -1,69 +1,81 @@
-'use client'
-import React from 'react'
-import { Property } from '@/lib/types'
-import { useRouter } from 'next/navigation'
-
+"use client";
+import React from "react";
+import { Property } from "@/lib/types";
+import { useRouter } from "next/navigation";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 interface PropertyTableProps {
-    properties: Property[] | null;
+  properties: Property[] | null;
 }
 
 const PropertyTable: React.FC<PropertyTableProps> = ({ properties }) => {
-    const router = useRouter()
+  const router = useRouter();
 
-    const handleRowClick = (id: string) => {
-        router.push(`/dashboard/properties/${id}`)
-    }
+  const handleRowClick = (id: string) => {
+    router.push(`/dashboard/properties/${id}`);
+  };
 
-    return (
-        <table className="min-w-full divide-y divide-gray-200">
-            <thead className="">
-                <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bathrooms</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bedrooms</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carpark</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pool</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-                {properties && properties.map((property: Property, index) => (
-                    <tr key={property.id} onClick={() => handleRowClick(property.id)} className='group hover:bg-gray-800 cursor-pointer'>
-                        <td className="px-6 py-2 whitespace-nowrap">
-                            <div className="text-sm font-bold">{index + 1}</div>
-                        </td>
-                        <td className="px-6 py-2 whitespace-nowrap">
-                            <div className="text-sm font-bold">{property.title}</div>
-                        </td>
-                        <td className="px-6 py-2 whitespace-nowrap">
-                            <div className="text-sm ">{property.address}</div>
-                        </td>
-                        <td className="px-6 py-2 whitespace-nowrap">
-                            <div className="text-sm ">{property.baths}</div>
-                        </td>
-                        <td className="px-6 py-2 whitespace-nowrap">
-                            <div className="text-sm ">{property.beds}</div>
-                        </td>
-                        <td className="px-6 py-2 whitespace-nowrap">
-                            <div className="text-sm ">{property.carpark}</div>
-                        </td>
-                        <td className="px-6 py-2 whitespace-nowrap">
-                            <span className="text-sm">
-                                {property.pool ? 'Yes' : 'No'}
-                            </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                {property.price}
-                            </span>
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
-    )
-}
+  return (
+    <Table>
+      <TableHeader className="">
+        <TableRow>
+          <TableHead className="">#</TableHead>
+          <TableHead className="">Title</TableHead>
+          <TableHead className="">Address</TableHead>
+          <TableHead className="">Bathrooms</TableHead>
+          <TableHead className="">Bedrooms</TableHead>
+          <TableHead className="">Carpark</TableHead>
+          <TableHead className="">Pool</TableHead>
+          <TableHead className="text-right">Price</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody className="">
+        {properties &&
+          properties.map((property: Property, index) => (
+            <TableRow
+              key={property.id}
+              onClick={() => handleRowClick(property.id)}
+              className="group  cursor-pointer"
+            >
+              <TableCell className="">
+                <div className="text-sm font-bold">{index + 1}</div>
+              </TableCell>
+              <TableCell className="">
+                <div className="text-sm font-bold">{property.title}</div>
+              </TableCell>
+              <TableCell className="">
+                <div className="text-sm ">{property.address}</div>
+              </TableCell>
+              <TableCell className="">
+                <div className="text-sm ">{property.baths}</div>
+              </TableCell>
+              <TableCell className="">
+                <div className="text-sm ">{property.beds}</div>
+              </TableCell>
+              <TableCell className="">
+                <div className="text-sm ">{property.carpark}</div>
+              </TableCell>
+              <TableCell className="">
+                <span className="text-sm">{property.pool ? "Yes" : "No"}</span>
+              </TableCell>
+              <TableCell className="px-6 py-4 whitespace-nowrap text-right">
+                <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-white text-black">
+                  ${property.price.toLocaleString()}
+                </span>
+              </TableCell>
+            </TableRow>
+          ))}
+      </TableBody>
+    </Table>
+  );
+};
 
-export default PropertyTable
+export default PropertyTable;

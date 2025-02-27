@@ -1,35 +1,42 @@
-'use client'
+"use client";
 
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet-defaulticon-compatibility';
-import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
-
+import * as React from "react";
+import Map, {
+  Layer,
+  Marker,
+  NavigationControl,
+  ScaleControl,
+} from "react-map-gl/mapbox";
+import "mapbox-gl/dist/mapbox-gl.css";
 interface MapProps {
-    latitude: string;
-    longitude: string;
+  latitude: number;
+  longitude: number;
 }
 
-const Map = ({ latitude, longitude }: MapProps) => {
-    console.log(latitude, longitude)
-    return (
-        <MapContainer
-            center={[35.5951, -82.5515]}
-            zoom={13}
-            scrollWheelZoom={false}
-            style={{ height: '400px', width: '100%' }}
-        >
-            <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={[35.5951, -82.5515]}>
-                <Popup>
-                    Property Location
-                </Popup>
-            </Marker>
-        </MapContainer>
-    )
-}
+const MapContainer = ({ latitude, longitude }: MapProps) => {
+  const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  return (
+    <Map
+      mapboxAccessToken={mapboxAccessToken}
+      initialViewState={{
+        longitude: longitude,
+        latitude: latitude,
+        zoom: 15,
+      }}
+      style={{ width: "container", height: 600 }}
+      mapStyle="mapbox://styles/mapbox/standard"
+    >
+      <ScaleControl />
+      <NavigationControl />
+      <Marker key="property" longitude={longitude} latitude={latitude}>
+        <img
+          src="/marker.png"
+          alt="https://www.flaticon.com/free-icons/map-marker"
+          className="h-14 shadow-slate-700"
+        />
+      </Marker>
+    </Map>
+  );
+};
 
-export default Map
+export default MapContainer;
