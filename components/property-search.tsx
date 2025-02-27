@@ -248,7 +248,7 @@ const PropertySearch = () => {
         </div>
         <Button
           type="submit"
-          className="bg-rose-600 hover:bg-rose-500 mt-4 w-full lg:w-1/2 "
+          className="bg-rose-600 hover:bg-rose-500 mt-4 w-full lg:w-1/2 text-lg"
         >
           Search
         </Button>
