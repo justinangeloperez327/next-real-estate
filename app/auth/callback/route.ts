@@ -1,24 +1,28 @@
-import { createClient } from "@/utils/supabase/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { safeRedirectPath } from "@/lib/redirect";
 
-export async function GET(request: Request) {
-  // The `/auth/callback` route is required for the server-side auth flow implemented
-  // by the SSR package. It exchanges an auth code for the user's session.
-  // https://supabase.com/docs/guides/auth/server-side/nextjs
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get("code");
-  const origin = requestUrl.origin;
-  const redirectTo = requestUrl.searchParams.get("redirect_to")?.toString();
+// Exchanges the auth code from email links (sign-up confirmation,
+// password reset) for a session cookie.
+export async function GET(request: NextRequest) {
+  const { searchParams, origin } = request.nextUrl;
+  const code = searchParams.get("code");
+  const redirectTo = safeRedirectPath(searchParams.get("redirect_to"), "/");
 
-  if (code) {
-    const supabase = await createClient();
-    await supabase.auth.exchangeCodeForSession(code);
+  if (!code) {
+    return NextResponse.redirect(
+      `${origin}/sign-in?error=${encodeURIComponent("Missing auth code")}`,
+    );
   }
 
-  if (redirectTo) {
-    return NextResponse.redirect(`${origin}${redirectTo}`);
+  const supabase = await createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    return NextResponse.redirect(
+      `${origin}/sign-in?error=${encodeURIComponent("This link is invalid or has expired")}`,
+    );
   }
 
-  // URL to redirect to after sign up process completes
-  return NextResponse.redirect(`${origin}/protected`);
+  return NextResponse.redirect(`${origin}${redirectTo}`);
 }

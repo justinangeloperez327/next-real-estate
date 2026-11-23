@@ -10,7 +10,7 @@ export const propertyFeatures = [
 export const priceRange = [
   { text: "Any", value: "0" },
   { text: "$50,000", value: "50000" },
-  { text: "$100,000", value: "10000" },
+  { text: "$100,000", value: "100000" },
   { text: "$150,000", value: "150000" },
   { text: "$200,000", value: "200000" },
   { text: "$250,000", value: "250000" },

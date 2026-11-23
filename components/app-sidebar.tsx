@@ -1,13 +1,14 @@
 "use client";
 
-import * as React from "react";
+import type { Route } from "next";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { BuildingIcon, HomeIcon, LogOutIcon } from "lucide-react";
-
-import { NavMain } from "@/components/nav-main";
-
+import { signOutAction } from "@/app/actions";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -15,28 +16,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { signOutAction } from "@/app/actions";
-import { Button } from "./ui/button";
 
-const items = [
-  {
-    name: "Dashboard",
-    url: "/dashboard",
-    href: "/dashboard",
-    label: "Dashboard",
-    icon: HomeIcon,
-  },
-  {
-    name: "Properties",
-    url: "/dashboard/properties",
-    href: "/dashboard/properties",
-    label: "Properties",
-    icon: BuildingIcon,
-  },
+const items: { name: string; href: Route; icon: typeof HomeIcon }[] = [
+  { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
+  { name: "Properties", href: "/dashboard/properties", icon: BuildingIcon },
 ];
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  console.log(props);
+export function AppSidebar({ email }: { email?: string }) {
+  const pathname = usePathname();
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -46,26 +34,42 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={
+                      item.href === "/dashboard"
+                        ? pathname === item.href
+                        : pathname.startsWith(item.href)
+                    }
+                  >
+                    <Link href={item.href}>
                       <item.icon />
                       <span>{item.name}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              <SidebarMenuItem>
-                <form action={signOutAction}>
-                  <SidebarMenuButton type="submit">
-                    <LogOutIcon />
-                    Sign out
-                  </SidebarMenuButton>
-                </form>
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        {email && (
+          <p className="truncate px-2 text-xs text-sidebar-foreground/70">
+            {email}
+          </p>
+        )}
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <form action={signOutAction}>
+              <SidebarMenuButton type="submit">
+                <LogOutIcon />
+                Sign out
+              </SidebarMenuButton>
+            </form>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

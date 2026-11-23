@@ -1,41 +1,68 @@
-'use client';
+"use client";
 
-import { deleteProperty } from '@/app/(admin)/dashboard/properties/actions';
-import { redirect } from 'next/navigation';
-import React, { useState } from 'react';
+import { useState, useTransition } from "react";
+import { deleteProperty } from "@/app/(admin)/dashboard/properties/actions";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
-interface DeleteButtonProps {
-    propertyId: number;
+export function DeleteButton({
+  propertyId,
+  title,
+}: {
+  propertyId: number;
+  title: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string>();
+  const [pending, startTransition] = useTransition();
+
+  const handleDelete = () => {
+    setError(undefined);
+    startTransition(async () => {
+      // On success the action redirects to the property list.
+      const result = await deleteProperty(propertyId);
+      if (result?.error) setError(result.error);
+    });
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="destructive">Delete</Button>
+      </SheetTrigger>
+      <SheetContent side="right">
+        <SheetHeader>
+          <SheetTitle>Delete “{title}”?</SheetTitle>
+          <SheetDescription>
+            This permanently removes the listing. This cannot be undone.
+          </SheetDescription>
+        </SheetHeader>
+        {error && (
+          <p role="alert" className="px-4 text-sm text-destructive">
+            {error}
+          </p>
+        )}
+        <SheetFooter className="mt-6 gap-2">
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Keep property
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={pending}
+          >
+            {pending ? "Deleting…" : "Delete property"}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
 }
-
-const DeleteButton: React.FC<DeleteButtonProps> = ({ propertyId }) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-
-    const handleDelete = async () => {
-        // Handle delete logic here
-        await deleteProperty(propertyId);
-        console.log('Property deleted');
-        setIsModalOpen(false);
-        redirect('/dashboard/properties');
-    };
-
-    return (
-        <>
-            <button onClick={() => setIsModalOpen(true)} className="px-3 py-1.5 bg-gray-400 hover:bg-red-700 rounded-md">Delete</button>
-            {isModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white p-6 rounded-md shadow-lg text-black">
-                        <h2 className="text-xl font-bold mb-4">Are you sure?</h2>
-                        <p className="mb-6">Do you really want to delete this property? This action cannot be undone.</p>
-                        <div className="flex justify-end gap-4">
-                            <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded-md">Cancel</button>
-                            <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-md">Delete</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </>
-    );
-};
-
-export default DeleteButton;

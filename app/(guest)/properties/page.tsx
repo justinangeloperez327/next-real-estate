@@ -1,58 +1,75 @@
-import React from "react";
-import PropertySearch from "@/components/property-search";
-import PropertyCard from "@/components/property-card";
-import { getProperties } from "./actions";
+import type { Metadata } from "next";
 import Image from "next/image";
-import Map from "@/components/map";
-import MulitplePropertyMap from "@/components/mulitple-property-map";
+import { PropertyMap } from "@/components/map";
+import { PropertyCard } from "@/components/property-card";
+import PropertySearch from "@/components/property-search";
+import { getProperties } from "@/lib/properties/queries";
+import type { PropertyFilters } from "@/lib/types";
 
-interface QueryParams {
-  search?: string;
-  property_type?: string;
-  beds?: string;
-  baths?: string;
-  carpark?: string;
-  minPrice?: string;
-  maxPrice?: string;
-}
+export const metadata: Metadata = { title: "Properties" };
 
-export default async function Properties({
+const FILTER_KEYS = [
+  "search",
+  "property_type",
+  "beds",
+  "baths",
+  "carpark",
+  "minPrice",
+  "maxPrice",
+] as const satisfies readonly (keyof PropertyFilters)[];
+
+export default async function PropertiesPage({
   searchParams,
-}: {
-  searchParams: Promise<QueryParams>;
-}) {
+}: PageProps<"/properties">) {
   const params = await searchParams;
-  const properties = (await getProperties(params)) || [];
+  const filters: PropertyFilters = {};
+  for (const key of FILTER_KEYS) {
+    const value = params[key];
+    if (typeof value === "string" && value) filters[key] = value;
+  }
+  const properties = await getProperties(filters);
 
   return (
-    <div className="">
-      <section className="relative h-96 flex items-center justify-center">
+    <div>
+      <section className="relative flex h-96 items-center justify-center">
         <Image
-          alt="property"
-          height={720}
-          width={1270}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
           src="/images/properties/hero.jpeg"
-          className="absolute w-full h-full object-cover"
+          className="object-cover"
         />
-
-        <div className="absolute w-full h-full bg-gray-900 opacity-60"></div>
-        <div className="container mx-auto text-center text-white relative z-10">
+        <div className="absolute inset-0 bg-gray-900 opacity-60" />
+        <div className="container relative z-10 mx-auto text-center text-white">
           <h1 className="text-4xl font-bold tracking-wider">
             Properties For Sale
           </h1>
           <PropertySearch />
         </div>
       </section>
-      <section className="my-10 container mx-auto">
-        <MulitplePropertyMap properties={properties} />
-      </section>
-      <section className="my-10 container mx-auto ">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {properties.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
-      </section>
+
+      {properties.length === 0 ? (
+        <section className="container mx-auto my-20 text-center">
+          <h2 className="text-2xl">No properties match your search</h2>
+          <p className="mt-2 text-muted-foreground">
+            Try widening the price range or removing a filter.
+          </p>
+        </section>
+      ) : (
+        <>
+          <section className="container mx-auto my-10">
+            <PropertyMap points={properties} />
+          </section>
+          <section className="container mx-auto my-10">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              {properties.map((property) => (
+                <PropertyCard key={property.id} property={property} />
+              ))}
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }

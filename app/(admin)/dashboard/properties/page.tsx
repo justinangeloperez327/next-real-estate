@@ -1,30 +1,28 @@
-import React from "react";
-import PropertyTable from "@/components/property-table";
-import { getProperties } from "./actions";
-import { Button } from "@headlessui/react";
-const DashboardProperties = async () => {
-  const properties = (await getProperties()) || null;
+import Link from "next/link";
+import type { Metadata } from "next";
+import { PageHeader } from "@/components/page-header";
+import { PropertyTable } from "@/components/property-table";
+import { Button } from "@/components/ui/button";
+import { getProperties } from "@/lib/properties/queries";
+
+export const metadata: Metadata = { title: "Properties" };
+
+export default async function DashboardPropertiesPage() {
+  const properties = await getProperties();
 
   return (
     <>
-      <div className="">
-        <div className="text-2xl mb-4 px-4 py-2 rounded-md shadow-lg">
-          Properties
-        </div>
-        <div className="max-w-full shadow-lg rounded-xl border border-gray-200 overflow-hidden px-6 py-4">
-          <div className="flex justify-end mb-4">
-            <a
-              href="/dashboard/properties/create"
-              className="px-3 py-1.5 bg-gray-200 hover:bg-gray-400 text-black rounded-md"
-            >
-              Create Property
-            </a>
-          </div>
-          <PropertyTable properties={properties} />
-        </div>
+      <PageHeader
+        title="Properties"
+        actions={
+          <Button asChild>
+            <Link href="/dashboard/properties/create">Create property</Link>
+          </Button>
+        }
+      />
+      <div className="max-w-full overflow-x-auto rounded-xl border px-6 py-4 shadow-lg">
+        <PropertyTable properties={properties} />
       </div>
     </>
   );
-};
-
-export default DashboardProperties;
+}
