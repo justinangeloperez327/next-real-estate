@@ -1,13 +1,15 @@
+import { connection } from "next/server";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/page-header";
-import { PropertyTable } from "@/components/property-table";
+import { PageHeader } from "@/components/layout/page-header";
+import { PropertyTable } from "@/features/properties/components/property-table";
 import { Button } from "@/components/ui/button";
-import { getProperties } from "@/lib/properties/queries";
+import { getProperties } from "@/features/properties/queries";
 
 export const metadata: Metadata = { title: "Properties" };
 
 export default async function DashboardPropertiesPage() {
+  await connection(); // admin views always render at request time
   const properties = await getProperties();
 
   return (

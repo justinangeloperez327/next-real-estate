@@ -1,14 +1,26 @@
+import { Suspense } from "react";
+import { TableSkeleton } from "@/features/properties/components/property-skeletons";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DeleteButton } from "@/components/delete-button";
-import { PageHeader } from "@/components/page-header";
+import { DeleteButton } from "@/features/properties/components/delete-property-button";
+import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { getProperty } from "@/lib/properties/queries";
+import { getProperty } from "@/features/properties/queries";
 import { formatPrice } from "@/lib/format";
 
-export default async function AdminPropertyPage({
+export default function AdminPropertyPage({
   params,
 }: PageProps<"/dashboard/properties/[id]">) {
+  return (
+    <Suspense fallback={<TableSkeleton />}>
+      <AdminPropertyPageContent params={params} />
+    </Suspense>
+  );
+}
+
+async function AdminPropertyPageContent({
+  params,
+}: Pick<PageProps<"/dashboard/properties/[id]">, "params">) {
   const { id } = await params;
   const property = await getProperty(id);
   if (!property) notFound();

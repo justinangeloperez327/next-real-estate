@@ -1,14 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
-import { isAdmin } from "@/lib/auth-shared";
+import { isAdmin } from "@/features/auth/roles";
 
 const AUTH_PAGES = ["/sign-in", "/sign-up", "/forgot-password"];
 
 /**
- * Refreshes the Supabase session cookie and performs coarse route guarding.
- * Pages and server actions still authorize on their own (see lib/auth.ts):
- * the proxy is a convenience, not a security boundary.
+ * Refreshes the Supabase session cookie and guards auth-only routes.
+ * Pages and server actions still authorize on their own
+ * (features/auth/session.ts): the proxy is a convenience, not a security
+ * boundary.
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -30,11 +31,10 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // Do not run code between createServerClient and getUser():
-  // getUser() refreshes the session and must happen first.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Must run first: refreshes an expired session. getClaims() verifies the
+  // JWT locally instead of calling Supabase Auth on every request.
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims ?? null;
 
   const { pathname } = request.nextUrl;
   const redirectTo = (path: string) => {
@@ -48,16 +48,16 @@ export async function updateSession(request: NextRequest) {
   };
 
   if (pathname.startsWith("/dashboard")) {
-    if (!user) return redirectTo("/sign-in");
-    if (!isAdmin(user)) return redirectTo("/");
+    if (!claims) return redirectTo("/sign-in");
+    if (!isAdmin(claims)) return redirectTo("/");
   }
 
-  if (pathname.startsWith("/reset-password") && !user) {
+  if (pathname.startsWith("/reset-password") && !claims) {
     return redirectTo("/sign-in");
   }
 
-  if (user && AUTH_PAGES.includes(pathname)) {
-    return redirectTo(isAdmin(user) ? "/dashboard" : "/");
+  if (claims && AUTH_PAGES.includes(pathname)) {
+    return redirectTo(isAdmin(claims) ? "/dashboard" : "/");
   }
 
   return response;

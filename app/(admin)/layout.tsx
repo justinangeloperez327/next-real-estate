@@ -1,29 +1,49 @@
 import type { Metadata } from "next";
-import { AppSidebar } from "@/components/app-sidebar";
-import Breadcrumbs from "@/components/breadcrumbs";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import Breadcrumbs from "@/components/layout/breadcrumbs";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { requireAdmin } from "@/lib/auth";
+import { Suspense } from "react";
+import { requireAdmin } from "@/features/auth/session";
+import { TableSkeleton } from "@/features/properties/components/property-skeletons";
 
 export const metadata: Metadata = {
   title: { template: "%s · Dashboard", default: "Dashboard" },
   robots: { index: false },
 };
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await requireAdmin();
+  // The session check reads cookies, so it runs at request time inside a
+  // Suspense boundary; nothing under /dashboard is prerendered for visitors.
+  return (
+    <Suspense fallback={<AdminFallback />}>
+      <AdminShell>{children}</AdminShell>
+    </Suspense>
+  );
+}
+
+function AdminFallback() {
+  return (
+    <div className="p-8">
+      <TableSkeleton />
+    </div>
+  );
+}
+
+async function AdminShell({ children }: { children: React.ReactNode }) {
+  const session = await requireAdmin();
 
   return (
     <SidebarProvider>
-      <AppSidebar email={user.email} />
+      <AppSidebar email={session.email} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/page-header";
-import { PropertyForm } from "@/components/property-form";
-import { createProperty } from "../actions";
+import { PageHeader } from "@/components/layout/page-header";
+import { PropertyForm } from "@/features/properties/components/property-form";
+import { createProperty } from "@/features/properties/actions";
 
 export const metadata: Metadata = { title: "Create property" };
 

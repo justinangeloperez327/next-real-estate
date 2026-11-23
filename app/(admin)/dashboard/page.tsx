@@ -1,8 +1,10 @@
+import { connection } from "next/server";
 import Link from "next/link";
-import { PageHeader } from "@/components/page-header";
-import { getProperties } from "@/lib/properties/queries";
+import { PageHeader } from "@/components/layout/page-header";
+import { getProperties } from "@/features/properties/queries";
 
 export default async function DashboardPage() {
+  await connection(); // admin views always render at request time
   const properties = await getProperties();
   const forSale = properties.filter((p) => p.category === "sale").length;
   const forRent = properties.filter((p) => p.category === "rent").length;

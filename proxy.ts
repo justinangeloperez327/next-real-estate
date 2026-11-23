@@ -5,9 +5,15 @@ export async function proxy(request: NextRequest) {
   return updateSession(request);
 }
 
+// Only run on routes that need a fresh session or a redirect. Public pages
+// (home, listings, about, contact) skip the proxy entirely so they can be
+// served straight from the cache.
 export const config = {
   matcher: [
-    // Skip Next.js internals and static assets.
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif)$).*)",
+    "/dashboard/:path*",
+    "/reset-password",
+    "/sign-in",
+    "/sign-up",
+    "/forgot-password",
   ],
 };

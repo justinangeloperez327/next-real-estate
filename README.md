@@ -40,19 +40,44 @@ Sign out and back in for the role to take effect.
 
 ## Project layout
 
+Routes live in `app/`; everything else is grouped by feature.
+
 ```
 app/
-  (guest)/        public site: home, properties, about, contact
-  (auth-pages)/   sign in, sign up, forgot/reset password
-  (admin)/        admin dashboard (requires admin role)
-  auth/callback/  Supabase email-link handler
-components/       UI components (shadcn primitives in components/ui)
+  (guest)/(home)/     home page (transparent navbar over the hero)
+  (guest)/(site)/     properties, about, contact
+  (auth-pages)/       sign in, sign up, forgot/reset password
+  (admin)/            dashboard (admin role required)
+  auth/callback/      Supabase email-link handler
+features/
+  properties/         queries (cached), actions, schema, types, components
+  auth/               session helpers, roles, server actions, components
+components/
+  layout/             navbar, footer, sidebar, breadcrumbs, page header
+  home/               home page sections
+  ui/                 shadcn/ui primitives
 lib/
-  auth.ts         getUser / requireUser / requireAdmin
-  properties/     zod schema + server-only queries
-  supabase/       server, browser and proxy clients
-proxy.ts          session refresh + route guarding
+  supabase/           server (cookies), public (cacheable) and proxy clients
+  env.ts, format.ts, redirect.ts, utils.ts
+proxy.ts              session refresh + guards for /dashboard and auth pages
 ```
+
+## Performance
+
+- **Cache Components / partial prerendering**: pages ship a static HTML shell
+  from the CDN; listings stream in from the data cache.
+- **Cached reads**: public listing queries use `"use cache"` with the
+  `properties` tag; admin mutations call `updateTag()` so changes show
+  immediately.
+- **No auth round-trips on public pages**: the proxy only runs on
+  `/dashboard` and the auth pages, and uses `getClaims()` (local JWT
+  verification) instead of `getUser()`.
+- **Lazy Mapbox**: the 1.9 MB map bundle loads only when a map scrolls into
+  view.
+- **Hero video**: 2 MB 720p loop with a poster image.
+- **Region**: put your Vercel Functions in the same region as your Supabase
+  project (Project Settings → Functions), otherwise every query crosses an
+  ocean.
 
 ## Scripts
 
