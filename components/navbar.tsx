@@ -1,22 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { usePathname } from "next/navigation";
+import { signOutAction } from "@/app/actions";
 
-export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "Real Estate App";
+export default function Navbar({
+  signedIn,
+  admin,
+}: {
+  signedIn: boolean;
+  admin: boolean;
+}) {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
 
@@ -25,15 +21,9 @@ export default function Navbar() {
   useEffect(() => {
     if (!isHomePage) return;
 
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
@@ -42,9 +32,9 @@ export default function Navbar() {
   return (
     <nav
       className={clsx(
-        "w-full z-50  top-0 flex justify-center border-b border-b-foreground/10 h-16",
+        "w-full z-50 top-0 flex justify-center border-b border-b-foreground/10 h-16 text-white",
         isHomePage && (isScrolled ? "fixed bg-black" : "fixed bg-transparent"),
-        !isHomePage && "bg-black"
+        !isHomePage && "bg-black",
       )}
     >
       <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
@@ -67,12 +57,39 @@ export default function Navbar() {
           >
             Contact
           </Link>
-          <Link href="/sign-in" className="hover:underline underline-offset-4">
-            Sign in
-          </Link>
-          <Link href="/sign-up" className="hover:underline underline-offset-4">
-            Sign up
-          </Link>
+          {admin && (
+            <Link
+              href="/dashboard"
+              className="hover:underline underline-offset-4"
+            >
+              Dashboard
+            </Link>
+          )}
+          {signedIn ? (
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="hover:underline underline-offset-4"
+              >
+                Sign out
+              </button>
+            </form>
+          ) : (
+            <>
+              <Link
+                href="/sign-in"
+                className="hover:underline underline-offset-4"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/sign-up"
+                className="hover:underline underline-offset-4"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

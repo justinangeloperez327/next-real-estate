@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { priceRange, propertyFeatures, propertyTypes } from "@/lib/constants";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -28,6 +28,7 @@ const formSchema = z.object({
 });
 
 const PropertySearch = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -44,17 +45,14 @@ const PropertySearch = () => {
   });
 
   function onSubmit(data: z.infer<typeof formSchema>) {
-    const searchParams = new URLSearchParams();
-
-    searchParams.set("search", data.search);
-    searchParams.set("property_type", data.property_type);
-    searchParams.set("beds", data.beds);
-    searchParams.set("baths", data.baths);
-    searchParams.set("carpark", data.carpark);
-    searchParams.set("minPrice", data.minPrice);
-    searchParams.set("maxPrice", data.maxPrice);
-
-    window.location.href = `/properties?${searchParams.toString()}`;
+    // Only include filters the user actually set, so URLs stay short.
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(data)) {
+      const v = value.trim();
+      if (v && v !== "0") params.set(key, v);
+    }
+    const query = params.toString();
+    router.push(query ? `/properties?${query}` : "/properties");
   }
 
   return (

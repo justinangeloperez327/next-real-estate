@@ -1,42 +1,70 @@
 "use client";
 
-import * as React from "react";
 import Map, {
-  Layer,
   Marker,
   NavigationControl,
   ScaleControl,
 } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-interface MapProps {
-  latitude: number;
-  longitude: number;
-}
+import type { Property } from "@/lib/types";
 
-const MapContainer = ({ latitude, longitude }: MapProps) => {
-  const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+type Point = Pick<Property, "id" | "latitude" | "longitude" | "address">;
+
+type Props = {
+  points: Point[];
+  /** Initial centre; defaults to the first point. */
+  center?: { latitude: number; longitude: number };
+  zoom?: number;
+  height?: number;
+};
+
+// Fallback centre (Abu Dhabi) when there are no points to show.
+const DEFAULT_CENTER = { latitude: 24.495139, longitude: 54.369796 };
+
+export function PropertyMap({
+  points,
+  center,
+  zoom = 10,
+  height = 600,
+}: Props) {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  if (!token) {
+    return (
+      <div
+        className="flex items-center justify-center rounded-md border text-sm text-muted-foreground"
+        style={{ height }}
+      >
+        Map unavailable: set NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN.
+      </div>
+    );
+  }
+
+  const initial = center ?? points[0] ?? DEFAULT_CENTER;
+
   return (
     <Map
-      mapboxAccessToken={mapboxAccessToken}
+      mapboxAccessToken={token}
       initialViewState={{
-        longitude: longitude,
-        latitude: latitude,
-        zoom: 15,
+        latitude: initial.latitude,
+        longitude: initial.longitude,
+        zoom,
       }}
-      style={{ width: "container", height: 600 }}
+      style={{ width: "100%", height }}
       mapStyle="mapbox://styles/mapbox/standard"
     >
       <ScaleControl />
       <NavigationControl />
-      <Marker key="property" longitude={longitude} latitude={latitude}>
-        <img
-          src="/marker.png"
-          alt="https://www.flaticon.com/free-icons/map-marker"
-          className="h-14 shadow-slate-700"
-        />
-      </Marker>
+      {points.map((point) => (
+        <Marker
+          key={point.id}
+          latitude={point.latitude}
+          longitude={point.longitude}
+          anchor="bottom"
+        >
+          {/* Marker icon: https://www.flaticon.com/free-icons/map-marker */}
+          <img src="/marker.png" alt={point.address} className="h-10" />
+        </Marker>
+      ))}
     </Map>
   );
-};
-
-export default MapContainer;
+}

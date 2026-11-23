@@ -1,47 +1,27 @@
+"use client";
 
-'use client'
-import React, { useState } from 'react'
-import PropertyCard from './property-card';
+import { PropertyCard } from "@/components/property-card";
 import {
-    Carousel,
-    CarouselContent,
-    CarouselItem,
-    CarouselNext,
-    CarouselPrevious,
-  } from "@/components/ui/carousel"
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import type { Property } from "@/lib/types";
 
-type Property = {
-    id: number;
-    image: string;
-    title: string;
-    address: string;
-    beds: number;
-    baths: number;
-    carpark: number;
-    property_type: string;
-    price: number;
+export function PropertyCarousel({ properties }: { properties: Property[] }) {
+  return (
+    <Carousel>
+      <CarouselContent>
+        {properties.map((property) => (
+          <CarouselItem key={property.id} className="lg:basis-1/3">
+            <PropertyCard property={property} />
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious />
+      <CarouselNext />
+    </Carousel>
+  );
 }
-
-interface PropertyCarouselProps {
-    properties?: Property[];
-}
-
-const PropertyCarousel = ({ properties = [] }: PropertyCarouselProps) => {
-  return ( 
-    <>
-        <Carousel>
-            <CarouselContent>
-                {properties.map((property) => (
-                    <CarouselItem key={property.id} className='lg:basis-1/3'>
-                        <PropertyCard property={property} />
-                    </CarouselItem>
-                ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-        </Carousel>
-    </>
-  )
-}
-
-export default PropertyCarousel

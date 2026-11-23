@@ -1,22 +1,32 @@
+export const PROPERTY_TYPES = ["house", "apartment"] as const;
+export const PROPERTY_CATEGORIES = ["sale", "rent"] as const;
+
+export type PropertyType = (typeof PROPERTY_TYPES)[number];
+export type PropertyCategory = (typeof PROPERTY_CATEGORIES)[number];
+
+/** A row of the `properties` table. */
 export interface Property {
-    id: string;
-    title: string;
-    description: string;
-    price: number;
-    location: string;
-    image: string;
-    beds: number;
-    baths: number;
-    carpark: number;
-    pool: boolean;
-    category: string;
-    propertyType: string;
-    address: string;
-    keyFeatures: string[];
-    whyYouLoveIt: string;
-    locationHighlights: string[];
-    latitude: number;
-    longitude: number;
-    slug: string;
-    floorplan: string;
+  id: number;
+  title: string;
+  description: string;
+  address: string;
+  price: number;
+  beds: number;
+  baths: number;
+  carpark: number;
+  pool: boolean;
+  property_type: PropertyType;
+  category: PropertyCategory;
+  latitude: number;
+  longitude: number;
 }
+
+export type PropertyFilters = {
+  search?: string;
+  property_type?: string;
+  beds?: string;
+  baths?: string;
+  carpark?: string;
+  minPrice?: string;
+  maxPrice?: string;
+};
