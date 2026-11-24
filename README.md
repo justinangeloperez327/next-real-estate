@@ -93,6 +93,21 @@ kept (passwords never are), and nothing is passed through the URL.
   project (Project Settings → Functions), otherwise every query crosses an
   ocean.
 
+## Deploying
+
+Automatic Git deployments are turned off in `vercel.json`
+(`git.deploymentEnabled: false`), so pushes and pull requests no longer
+deploy to Vercel. Deploy manually with the Vercel CLI:
+
+```bash
+npx vercel          # preview deployment
+npx vercel --prod   # production deployment
+```
+
+To turn automatic deploys back on, delete `vercel.json` or set
+`deploymentEnabled` to `true`. You can also enable it for specific
+branches only, for example `{ "main": true }`.
+
 ## Scripts
 
 | Command             | Description                                 |
