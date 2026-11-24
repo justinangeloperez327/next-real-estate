@@ -39,9 +39,4 @@ export type PropertyInput = z.infer<typeof propertyInputSchema>;
 
 export const propertyIdSchema = z.coerce.number().int().positive();
 
-/** State returned by the create/update server actions to the form. */
-export type PropertyFormState = {
-  error?: string;
-  fieldErrors?: Partial<Record<keyof PropertyInput, string[]>>;
-  values?: Record<string, string>;
-};
+export type PropertyField = keyof PropertyInput;

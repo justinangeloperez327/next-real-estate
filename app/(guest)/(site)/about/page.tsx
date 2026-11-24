@@ -1,95 +1,84 @@
+import type { Metadata } from "next";
 import Image from "next/image";
-import React from "react";
+import { PageHero } from "@/components/layout/page-hero";
+import { cn } from "@/lib/utils";
 
-const AboutPage = () => {
+export const metadata: Metadata = {
+  title: "About us",
+  description: "Who we are and how we help people find their next home.",
+};
+
+// TODO(content): replace with the agency's own story and photos.
+const STORY = [
+  "We started with a simple idea: buying, selling or renting a home should feel exciting, not exhausting. Today our team helps families, first-time buyers and investors find the right property at the right price.",
+  "We know our neighbourhoods street by street, and we're with you at every step, from the first viewing to handing over the keys.",
+];
+
+const SECTIONS = [
+  {
+    title: "Our Community",
+    image: "/images/community.jpg",
+    body: [
+      "We live and work in the communities we sell in. That local knowledge means honest advice about schools, transport and what each street is really like.",
+      "Many of our clients come to us through friends and neighbours, and we work hard to keep it that way.",
+    ],
+  },
+  {
+    title: "Our Approach",
+    image: "/images/community2.jpg",
+    body: [
+      "Clear pricing, regular updates and no pressure. We tell you what we'd do if it were our own home.",
+      "Whether it's your first apartment or your fifth investment, you'll have one point of contact from start to finish.",
+    ],
+  },
+];
+
+export default function AboutPage() {
   return (
     <>
-      <section className="relative h-96 flex items-center justify-center">
-        <Image
-          alt="property"
-          height={720}
-          width={1270}
-          src="/images/about.jpg"
-          className="absolute w-full h-full object-cover"
-        />
-        <div className="absolute w-full h-full bg-gray-900 opacity-60"></div>
-        <div className="container mx-auto text-center text-white relative z-10">
-          <h1 className="text-4xl font-bold tracking-wider capitalize">
-            Making your real estate experience more enjoyable.
-          </h1>
-          <h2 className="mt-2 tracking-widest">
-            Our passion is people and property.
-          </h2>
+      <PageHero
+        image="/images/about.jpg"
+        title="Making your real estate experience more enjoyable."
+        subtitle="Our passion is people and property."
+      />
+
+      <section className="container mx-auto my-16 max-w-3xl">
+        <h2 className="text-2xl font-semibold tracking-wider">Our Story</h2>
+        <div className="mt-4 space-y-4 text-lg leading-relaxed">
+          {STORY.map((p) => (
+            <p key={p}>{p}</p>
+          ))}
         </div>
       </section>
-      <section className="my-10 container mx-auto ">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-wider">Our Story</h1>
-          <div className="my-4">
-            <p className="text-lg tracking-wider">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Culpa,
-              aperiam eaque corrupti ducimus architecto sapiente in illum
-              facilis ullam accusamus totam magni itaque distinctio pariatur
-              libero facere nisi delectus quia adipisci. Ipsa a soluta molestias
-              officiis iusto maxime id quae ipsum! Necessitatibus repellat
-              quidem officiis fugiat ad minus iste accusantium perspiciatis?
-              Fugiat saepe eveniet molestias natus eum ad reprehenderit est
-              accusamus laboriosam nihil architecto nobis velit, sint sapiente
-              optio. Laudantium repellat tenetur nostrum officiis et nobis enim
-              fuga voluptatem, atque esse quos asperiores voluptates voluptas
-              animi, cupiditate, incidunt vero unde!
-            </p>
+
+      <section className="container mx-auto my-16 space-y-8">
+        {SECTIONS.map((section, i) => (
+          <div key={section.title} className="grid items-center md:grid-cols-2">
+            <div
+              className={cn(
+                "flex flex-col justify-center gap-4 p-8",
+                i % 2 === 1 && "md:order-2",
+              )}
+            >
+              <h3 className="text-xl font-bold tracking-widest">
+                {section.title}
+              </h3>
+              {section.body.map((p) => (
+                <p key={p}>{p}</p>
+              ))}
+            </div>
+            <div className="relative h-80 md:h-96">
+              <Image
+                src={section.image}
+                alt=""
+                fill
+                sizes="(min-width: 768px) 50vw, 100vw"
+                className="object-cover"
+              />
+            </div>
           </div>
-        </div>
-      </section>
-      <section className="my-10 container mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2">
-          <div className="flex flex-col p-8 justify-center">
-            <h3 className="text-xl font-bold tracking-widest">Our Community</h3>
-            <p className="my-4">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Atque
-              fugiat eius veritatis? Quo voluptatum vel corporis? Illum nesciunt
-              at eveniet suscipit error, non consectetur dolor.
-            </p>
-            <p>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              Consectetur labore maiores officia nulla cum ut?
-            </p>
-          </div>
-          <div>
-            <Image
-              alt="community"
-              src="/images/community.jpg"
-              height={720}
-              width={720}
-              className="object-cover max-h-96"
-            />
-          </div>
-          <div>
-            <Image
-              alt="community"
-              src="/images/community2.jpg"
-              height={720}
-              width={720}
-              className="object-cover max-h-96"
-            />
-          </div>
-          <div className="flex flex-col p-8 justify-center">
-            <h3 className="text-xl font-bold tracking-widest">Our Community</h3>
-            <p className="my-4">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Atque
-              fugiat eius veritatis? Quo voluptatum vel corporis? Illum nesciunt
-              at eveniet suscipit error, non consectetur dolor.
-            </p>
-            <p>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit.
-              Consectetur labore maiores officia nulla cum ut?
-            </p>
-          </div>
-        </div>
+        ))}
       </section>
     </>
   );
-};
-
-export default AboutPage;
+}

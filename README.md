@@ -15,8 +15,9 @@ Demo: [justin-real-estate.vercel.app](https://justin-real-estate.vercel.app/)
 ## Getting started
 
 1. Copy `.env.example` to `.env.local` and fill in the Supabase and Mapbox values.
-2. Apply the row-level security policies in
-   `supabase/migrations/` (Supabase SQL editor or `supabase db push`).
+2. Apply the SQL in `supabase/migrations/` (Supabase SQL editor or
+   `supabase db push`). It enables row-level security on `properties` and
+   creates the `contact_messages` table used by the contact form.
 3. Install and run:
 
    ```bash
@@ -47,20 +48,33 @@ app/
   (guest)/(home)/     home page (transparent navbar over the hero)
   (guest)/(site)/     properties, about, contact
   (auth-pages)/       sign in, sign up, forgot/reset password
-  (admin)/            dashboard (admin role required)
+  (admin)/            dashboard: properties, messages (admin role required)
   auth/callback/      Supabase email-link handler
+  sitemap.ts, robots.ts
 features/
-  properties/         queries (cached), actions, schema, types, components
-  auth/               session helpers, roles, server actions, components
+  properties/         queries (cached), actions, schema, filters, components
+  auth/               session, roles, schema, actions, form components
+  contact/            contact form, schema, action, admin queries
 components/
-  layout/             navbar, footer, sidebar, breadcrumbs, page header
+  forms/              FormField, FormAlert, SubmitButton (shared by all forms)
+  layout/             navbar, footer, sidebar, breadcrumbs, page header/hero
   home/               home page sections
   ui/                 shadcn/ui primitives
 lib/
+  forms.ts            FormState + validateForm (zod) for server actions
   supabase/           server (cookies), public (cacheable) and proxy clients
-  env.ts, format.ts, redirect.ts, utils.ts
+  env.ts, format.ts, redirect.ts, site.ts, utils.ts
 proxy.ts              session refresh + guards for /dashboard and auth pages
+supabase/migrations/  RLS policies and tables
 ```
+
+### Forms
+
+Every form follows the same pattern: a zod schema, a server action that
+calls `validateForm()` and returns a `FormState`, and a client component
+using `useActionState` with the shared `FormField` / `FormAlert` /
+`SubmitButton`. Errors show inline next to each field, typed values are
+kept (passwords never are), and nothing is passed through the URL.
 
 ## Performance
 
@@ -81,9 +95,15 @@ proxy.ts              session refresh + guards for /dashboard and auth pages
 
 ## Scripts
 
-| Command             | Description                      |
-| ------------------- | -------------------------------- |
-| `npm run dev`       | Start the dev server (Turbopack) |
-| `npm run build`     | Production build                 |
-| `npm run typecheck` | Generate route types and run tsc |
-| `npm run format`    | Format with Prettier             |
+| Command             | Description                                 |
+| ------------------- | ------------------------------------------- |
+| `npm run dev`       | Start the dev server (Turbopack)            |
+| `npm run build`     | Production build                            |
+| `npm run lint`      | ESLint (Next.js core-web-vitals + TS rules) |
+| `npm run typecheck` | Generate route types and run `tsc`          |
+| `npm test`          | Unit tests (Vitest)                         |
+| `npm run check`     | Lint + typecheck + tests                    |
+| `npm run format`    | Format with Prettier                        |
+
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests, format check
+and a production build on every pull request.

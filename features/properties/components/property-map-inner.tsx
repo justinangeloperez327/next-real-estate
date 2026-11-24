@@ -61,7 +61,9 @@ export default function PropertyMapInner({
           longitude={point.longitude}
           anchor="bottom"
         >
-          {/* Marker icon: https://www.flaticon.com/free-icons/map-marker */}
+          {/* Marker icon: https://www.flaticon.com/free-icons/map-marker
+              Mapbox markers are plain DOM nodes; next/image adds nothing. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/marker.png" alt={point.address} className="h-10" />
         </Marker>
       ))}

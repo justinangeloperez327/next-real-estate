@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import { PageHero } from "@/components/layout/page-hero";
 import { Suspense } from "react";
 import { PropertyCard } from "@/features/properties/components/property-card";
 import { PropertyMap } from "@/features/properties/components/property-map";
@@ -15,25 +15,14 @@ export default function PropertiesPage({
 }: PageProps<"/properties">) {
   return (
     <div>
-      <section className="relative flex h-96 items-center justify-center">
-        <Image
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          src="/images/properties/hero.jpeg"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gray-900 opacity-60" />
-        <div className="container relative z-10 mx-auto text-center text-white">
-          <h1 className="text-4xl font-bold tracking-wider">
-            Properties For Sale
-          </h1>
-          <Suspense>
-            <PropertySearch />
-          </Suspense>
-        </div>
-      </section>
+      <PageHero
+        image="/images/properties/hero.jpeg"
+        title="Properties For Sale"
+      >
+        <Suspense>
+          <PropertySearch />
+        </Suspense>
+      </PageHero>
 
       <Suspense
         fallback={

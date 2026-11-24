@@ -2,24 +2,17 @@
 
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import { requireAdmin } from "@/features/auth/session";
 import { tags } from "@/features/properties/queries";
 import { createClient } from "@/lib/supabase/server";
+import { validateForm, type FormState } from "@/lib/forms";
 import {
   propertyIdSchema,
   propertyInputSchema,
-  type PropertyFormState,
+  type PropertyField,
 } from "@/features/properties/schema";
 
-function parseForm(formData: FormData) {
-  const values = Object.fromEntries(
-    [...formData.entries()]
-      .filter(([key, v]) => typeof v === "string" && !key.startsWith("$"))
-      .map(([key, v]) => [key, v as string]),
-  );
-  return { values, result: propertyInputSchema.safeParse(values) };
-}
+type PropertyFormState = FormState<PropertyField>;
 
 /** Expire cached listings so every page shows the change immediately. */
 function invalidate(id?: number) {
@@ -33,23 +26,22 @@ export async function createProperty(
 ): Promise<PropertyFormState> {
   await requireAdmin();
 
-  const { values, result } = parseForm(formData);
-  if (!result.success) {
-    return { fieldErrors: z.flattenError(result.error).fieldErrors, values };
-  }
+  const form = validateForm(propertyInputSchema, formData);
+  if (!form.ok) return form.state;
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("properties")
-    .insert(result.data)
+    .insert(form.data)
     .select("id")
     .single();
 
   if (error) {
     console.error("createProperty failed:", error);
     return {
-      error: "Could not create the property. Please try again.",
-      values,
+      status: "error",
+      message: "Could not create the property. Please try again.",
+      values: form.values,
     };
   }
 
@@ -65,20 +57,22 @@ export async function updateProperty(
   await requireAdmin();
 
   const propertyId = propertyIdSchema.parse(id);
-  const { values, result } = parseForm(formData);
-  if (!result.success) {
-    return { fieldErrors: z.flattenError(result.error).fieldErrors, values };
-  }
+  const form = validateForm(propertyInputSchema, formData);
+  if (!form.ok) return form.state;
 
   const supabase = await createClient();
   const { error, count } = await supabase
     .from("properties")
-    .update(result.data, { count: "exact" })
+    .update(form.data, { count: "exact" })
     .eq("id", propertyId);
 
   if (error || count === 0) {
     console.error("updateProperty failed:", error ?? "no rows updated");
-    return { error: "Could not save the property. Please try again.", values };
+    return {
+      status: "error",
+      message: "Could not save the property. Please try again.",
+      values: form.values,
+    };
   }
 
   invalidate(propertyId);

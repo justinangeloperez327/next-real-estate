@@ -1,10 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
+import { FormAlert } from "@/components/forms/form-alert";
+import { FormField } from "@/components/forms/form-field";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -12,23 +12,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type {
-  PropertyFormState,
-  PropertyInput,
-} from "@/features/properties/schema";
+import { Textarea } from "@/components/ui/textarea";
+import type { PropertyField } from "@/features/properties/schema";
 import type { Property } from "@/features/properties/types";
+import { initialFormState, type FormState } from "@/lib/forms";
 
-type Action = (
-  prev: PropertyFormState,
-  formData: FormData,
-) => Promise<PropertyFormState>;
+type State = FormState<PropertyField>;
 
 type Props = {
-  action: Action;
+  action: (prev: State, formData: FormData) => Promise<State>;
   property?: Property;
   submitLabel: string;
   pendingLabel: string;
 };
+
+const PROPERTY_TYPE_OPTIONS = [
+  { value: "house", label: "House" },
+  { value: "apartment", label: "Apartment" },
+];
+const CATEGORY_OPTIONS = [
+  { value: "sale", label: "For sale" },
+  { value: "rent", label: "For rent" },
+];
 
 export function PropertyForm({
   action,
@@ -36,120 +41,97 @@ export function PropertyForm({
   submitLabel,
   pendingLabel,
 }: Props) {
-  const [state, formAction, pending] = useActionState(action, {});
-
-  // After a failed submit, re-populate with what the user typed.
-  const value = (name: keyof PropertyInput): string | undefined =>
-    state.values?.[name] ?? property?.[name]?.toString();
+  const [state, formAction, pending] = useActionState(
+    action,
+    initialFormState as State,
+  );
   const errors = state.fieldErrors ?? {};
 
-  const field = (
-    name: keyof PropertyInput,
+  // After a failed submit, re-populate with what the user typed.
+  const value = (name: PropertyField): string | undefined =>
+    state.values ? state.values[name] : property?.[name]?.toString();
+
+  const text = (
+    name: PropertyField,
     label: string,
-    input: React.ReactNode,
+    props: React.ComponentProps<typeof Input> = {},
   ) => (
-    <div className="grid w-full items-center gap-1.5">
-      <Label htmlFor={name}>{label}</Label>
-      {input}
-      {errors[name]?.[0] && (
-        <p id={`${name}-error`} className="text-sm text-destructive">
-          {errors[name][0]}
-        </p>
+    <FormField id={name} label={label} error={errors[name]}>
+      {(aria) => (
+        <Input {...aria} {...props} name={name} defaultValue={value(name)} />
       )}
-    </div>
+    </FormField>
   );
 
-  const inputProps = (name: keyof PropertyInput) => ({
-    id: name,
-    name,
-    defaultValue: value(name),
-    "aria-invalid": errors[name] ? true : undefined,
-    "aria-describedby": errors[name] ? `${name}-error` : undefined,
-  });
+  const textarea = (name: PropertyField, label: string, rows: number) => (
+    <FormField id={name} label={label} error={errors[name]}>
+      {(aria) => (
+        <Textarea
+          {...aria}
+          name={name}
+          rows={rows}
+          defaultValue={value(name)}
+          required
+        />
+      )}
+    </FormField>
+  );
 
-  // `key` forces uncontrolled inputs to pick up re-populated values.
+  const select = (
+    name: PropertyField,
+    label: string,
+    options: { value: string; label: string }[],
+  ) => (
+    <FormField id={name} label={label} error={errors[name]}>
+      {(aria) => (
+        <Select name={name} defaultValue={value(name)}>
+          <SelectTrigger {...aria}>
+            <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+    </FormField>
+  );
+
+  const count = { type: "number", min: 0, step: 1, required: true } as const;
+
   return (
+    // `key` remounts the uncontrolled inputs so re-populated values show.
     <form
-      action={formAction}
       key={JSON.stringify(state.values ?? {})}
-      className="flex flex-col gap-6"
+      action={formAction}
       noValidate
+      className="flex flex-col gap-6"
     >
-      {field("title", "Title", <Input {...inputProps("title")} required />)}
-      {field(
-        "description",
-        "Description",
-        <Textarea {...inputProps("description")} rows={5} required />,
-      )}
-      {field(
-        "address",
-        "Address",
-        <Textarea {...inputProps("address")} rows={2} required />,
-      )}
-      {field(
-        "price",
-        "Price",
-        <Input {...inputProps("price")} type="number" min={0} required />,
-      )}
+      {text("title", "Title", { required: true })}
+      {textarea("description", "Description", 5)}
+      {textarea("address", "Address", 2)}
+      {text("price", "Price", { ...count })}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        {field(
-          "beds",
-          "Bedrooms",
-          <Input {...inputProps("beds")} type="number" min={0} required />,
-        )}
-        {field(
-          "baths",
-          "Bathrooms",
-          <Input {...inputProps("baths")} type="number" min={0} required />,
-        )}
-        {field(
-          "carpark",
-          "Car parks",
-          <Input {...inputProps("carpark")} type="number" min={0} required />,
-        )}
+        {text("beds", "Bedrooms", count)}
+        {text("baths", "Bathrooms", count)}
+        {text("carpark", "Car parks", count)}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {field(
-          "property_type",
-          "Property type",
-          <Select name="property_type" defaultValue={value("property_type")}>
-            <SelectTrigger id="property_type">
-              <SelectValue placeholder="Select property type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="house">House</SelectItem>
-              <SelectItem value="apartment">Apartment</SelectItem>
-            </SelectContent>
-          </Select>,
-        )}
-        {field(
-          "category",
-          "Category",
-          <Select name="category" defaultValue={value("category")}>
-            <SelectTrigger id="category">
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="sale">For sale</SelectItem>
-              <SelectItem value="rent">For rent</SelectItem>
-            </SelectContent>
-          </Select>,
-        )}
+        {select("property_type", "Property type", PROPERTY_TYPE_OPTIONS)}
+        {select("category", "Category", CATEGORY_OPTIONS)}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {field(
-          "latitude",
-          "Latitude",
-          <Input {...inputProps("latitude")} inputMode="decimal" required />,
-        )}
-        {field(
-          "longitude",
-          "Longitude",
-          <Input {...inputProps("longitude")} inputMode="decimal" required />,
-        )}
+        {text("latitude", "Latitude", { inputMode: "decimal", required: true })}
+        {text("longitude", "Longitude", {
+          inputMode: "decimal",
+          required: true,
+        })}
       </div>
 
       <label className="flex items-center gap-2 text-sm">
@@ -164,15 +146,15 @@ export function PropertyForm({
         Has a pool
       </label>
 
-      {state.error && (
-        <p role="alert" className="text-sm text-destructive">
-          {state.error}
-        </p>
-      )}
+      <FormAlert status={state.status}>{state.message}</FormAlert>
 
-      <Button type="submit" disabled={pending} className="self-start">
-        {pending ? pendingLabel : submitLabel}
-      </Button>
+      <SubmitButton
+        pending={pending}
+        pendingText={pendingLabel}
+        className="self-start"
+      >
+        {submitLabel}
+      </SubmitButton>
     </form>
   );
 }

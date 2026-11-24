@@ -4,11 +4,11 @@ export default function CallToAction() {
   return (
     <section className="py-20">
       <div className="container mx-auto text-center">
-        <h2 className="text-4xl mb-4">Ready to find your dream home?</h2>
-        <h6 className="text-md mb-6">Get in touch with us today</h6>
+        <h2 className="mb-4 text-4xl">Ready to find your dream home?</h2>
+        <p className="mb-8">Get in touch with us today</p>
         <Link
-          className="bg-rose-600 text-white py-3 px-6 rounded-lg"
           href="/contact"
+          className="rounded-lg bg-rose-600 px-6 py-3 text-white transition-colors hover:bg-rose-500"
         >
           Contact Us
         </Link>

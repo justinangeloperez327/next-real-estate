@@ -3,7 +3,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BuildingIcon, HomeIcon, LogOutIcon } from "lucide-react";
+import { BuildingIcon, HomeIcon, LogOutIcon, MailIcon } from "lucide-react";
 import { signOutAction } from "@/features/auth/actions";
 import {
   Sidebar,
@@ -20,6 +20,7 @@ import {
 const items: { name: string; href: Route; icon: typeof HomeIcon }[] = [
   { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
   { name: "Properties", href: "/dashboard/properties", icon: BuildingIcon },
+  { name: "Messages", href: "/dashboard/messages", icon: MailIcon },
 ];
 
 export function AppSidebar({ email }: { email?: string }) {
