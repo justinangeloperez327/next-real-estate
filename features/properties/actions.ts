@@ -40,7 +40,8 @@ export async function createProperty(
     console.error("createProperty failed:", error);
     return {
       status: "error",
-      message: "Could not create the property. Please try again.",
+      message:
+        "We couldn't create the listing. Your details are still here, so try again in a moment.",
       values: form.values,
     };
   }
@@ -70,7 +71,8 @@ export async function updateProperty(
     console.error("updateProperty failed:", error ?? "no rows updated");
     return {
       status: "error",
-      message: "Could not save the property. Please try again.",
+      message:
+        "We couldn't save your changes. They're still here, so try again in a moment.",
       values: form.values,
     };
   }
@@ -91,7 +93,7 @@ export async function deleteProperty(id: number): Promise<{ error?: string }> {
 
   if (error || count === 0) {
     console.error("deleteProperty failed:", error ?? "no rows deleted");
-    return { error: "Could not delete the property. Please try again." };
+    return { error: "We couldn't delete this listing. Try again in a moment." };
   }
 
   invalidate(propertyId);

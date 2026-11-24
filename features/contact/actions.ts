@@ -29,7 +29,7 @@ export async function sendContactMessage(
     return {
       status: "error",
       message:
-        "We couldn't send your message. Please try again, or email us directly.",
+        "We couldn't send your message. Try again, or email us at hello@example.com.",
       values: form.values,
     };
   }

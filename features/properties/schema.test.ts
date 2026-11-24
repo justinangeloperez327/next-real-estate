@@ -43,6 +43,8 @@ describe("propertyInputSchema", () => {
     ["property_type", "castle"],
     ["category", "lease"],
     ["title", "   "],
+    ["price", ""],
+    ["beds", "  "],
   ])("rejects %s = %j", (field, value) => {
     const result = propertyInputSchema.safeParse({ ...valid, [field]: value });
     expect(result.success).toBe(false);

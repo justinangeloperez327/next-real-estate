@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-/** Full-width image banner with a darkened overlay and centred heading. */
+/** Photo banner with a darkened overlay (keeps white text at AA). */
 export function PageHero({
   image,
   title,
@@ -13,20 +13,24 @@ export function PageHero({
   children?: React.ReactNode;
 }) {
   return (
-    <section className="relative flex min-h-96 items-center justify-center py-16">
+    <section className="relative isolate flex min-h-80 items-center justify-center px-4 py-16">
       <Image
         src={image}
         alt=""
         fill
         priority
         sizes="100vw"
-        className="object-cover"
+        className="-z-10 object-cover"
       />
-      <div aria-hidden className="absolute inset-0 bg-gray-900/60" />
-      <div className="container relative z-10 mx-auto text-center text-white">
-        <h1 className="text-4xl font-bold tracking-wider">{title}</h1>
-        {subtitle && <p className="mt-2 tracking-widest">{subtitle}</p>}
-        {children}
+      <div aria-hidden className="absolute inset-0 -z-10 bg-slate-950/65" />
+      <div className="w-full max-w-5xl text-center text-white">
+        <h1 className="text-3xl font-semibold sm:text-4xl">{title}</h1>
+        {subtitle && (
+          <p className="mx-auto mt-3 max-w-xl text-lg text-white/90">
+            {subtitle}
+          </p>
+        )}
+        {children && <div className="mt-8">{children}</div>}
       </div>
     </section>
   );

@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
+import { DraftNotice } from "@/components/forms/draft-notice";
+import { useFormDraft } from "@/components/forms/use-form-draft";
 import { FormAlert } from "@/components/forms/form-alert";
 import { FormField } from "@/components/forms/form-field";
 import { SubmitButton } from "@/components/forms/submit-button";
@@ -13,7 +15,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { PropertyField } from "@/features/properties/schema";
+import { useFieldValidation } from "@/components/forms/use-field-validation";
+import {
+  propertyInputSchema,
+  type PropertyField,
+} from "@/features/properties/schema";
 import type { Property } from "@/features/properties/types";
 import { initialFormState, type FormState } from "@/lib/forms";
 
@@ -45,7 +51,11 @@ export function PropertyForm({
     action,
     initialFormState as State,
   );
-  const errors = state.fieldErrors ?? {};
+  const v = useFieldValidation(propertyInputSchema, state.fieldErrors);
+  // Only new listings keep a local draft; edits start from saved data.
+  // The draft is cleared on submit (success redirects away; a failed
+  // submit re-populates the form from the server's echoed values).
+  const draft = useFormDraft("draft:property:new", { enabled: !property });
 
   // After a failed submit, re-populate with what the user typed.
   const value = (name: PropertyField): string | undefined =>
@@ -56,18 +66,25 @@ export function PropertyForm({
     label: string,
     props: React.ComponentProps<typeof Input> = {},
   ) => (
-    <FormField id={name} label={label} error={errors[name]}>
+    <FormField id={name} label={label} error={v.errorFor(name)}>
       {(aria) => (
-        <Input {...aria} {...props} name={name} defaultValue={value(name)} />
+        <Input
+          {...aria}
+          {...props}
+          {...v.fieldProps(name)}
+          name={name}
+          defaultValue={value(name)}
+        />
       )}
     </FormField>
   );
 
   const textarea = (name: PropertyField, label: string, rows: number) => (
-    <FormField id={name} label={label} error={errors[name]}>
+    <FormField id={name} label={label} error={v.errorFor(name)}>
       {(aria) => (
         <Textarea
           {...aria}
+          {...v.fieldProps(name)}
           name={name}
           rows={rows}
           defaultValue={value(name)}
@@ -82,9 +99,13 @@ export function PropertyForm({
     label: string,
     options: { value: string; label: string }[],
   ) => (
-    <FormField id={name} label={label} error={errors[name]}>
+    <FormField id={name} label={label} error={v.errorFor(name)}>
       {(aria) => (
-        <Select name={name} defaultValue={value(name)}>
+        <Select
+          name={name}
+          defaultValue={value(name) ?? defaults[name]}
+          onValueChange={() => v.clear(name)}
+        >
           <SelectTrigger {...aria}>
             <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
           </SelectTrigger>
@@ -100,16 +121,24 @@ export function PropertyForm({
     </FormField>
   );
 
+  // Inferred defaults for new listings (most are houses for sale).
+  const defaults: Partial<Record<PropertyField, string>> = property
+    ? {}
+    : { property_type: "house", category: "sale" };
+
   const count = { type: "number", min: 0, step: 1, required: true } as const;
 
   return (
     // `key` remounts the uncontrolled inputs so re-populated values show.
     <form
+      {...draft.formProps}
       key={JSON.stringify(state.values ?? {})}
       action={formAction}
+      onSubmit={draft.clear}
       noValidate
       className="flex flex-col gap-6"
     >
+      {draft.restored && <DraftNotice onDiscard={draft.discard} />}
       {text("title", "Title", { required: true })}
       {textarea("description", "Description", 5)}
       {textarea("address", "Address", 2)}

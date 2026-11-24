@@ -14,6 +14,17 @@ import {
 
 const SENSITIVE = { sensitive: ["password", "confirmPassword"] };
 
+// Supabase error codes mapped to plain, non-blaming copy with a next step.
+const SIGN_UP_ERRORS: Record<string, string> = {
+  user_already_exists:
+    "There's already an account for this email. Sign in, or reset your password if you've forgotten it.",
+  weak_password:
+    "Choose a stronger password: at least 8 characters, ideally a short phrase.",
+  over_email_send_rate_limit:
+    "We've sent several emails in a short time. Wait a few minutes, then try again.",
+  default: "We couldn't create your account just now. Try again in a moment.",
+};
+
 async function getOrigin() {
   const origin = (await headers()).get("origin");
   if (origin) return origin;
@@ -36,7 +47,10 @@ export async function signInAction(
     return {
       status: "error",
       // Same message for unknown email and wrong password.
-      message: "Email or password is incorrect.",
+      message:
+        error.code === "email_not_confirmed"
+          ? "This email isn't confirmed yet. Open the link we emailed you, then sign in."
+          : "That email and password don't match an account. Check them and try again, or reset your password.",
       values: { email: form.data.email },
     };
   }
@@ -61,7 +75,7 @@ export async function signUpAction(
     console.error("signUp failed:", error.code, error.message);
     return {
       status: "error",
-      message: error.message,
+      message: SIGN_UP_ERRORS[error.code ?? ""] ?? SIGN_UP_ERRORS.default,
       values: { email: form.data.email },
     };
   }
@@ -113,7 +127,7 @@ export async function resetPasswordAction(
       message:
         error.code === "same_password"
           ? "Choose a password different from your current one."
-          : "Couldn't update your password. Request a new reset link and try again.",
+          : "We couldn't update your password. Request a new reset link and try again.",
     };
   }
 

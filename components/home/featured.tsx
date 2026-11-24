@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { unstable_rethrow } from "next/navigation";
+import { ArrowRightIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PropertyCarousel } from "@/features/properties/components/property-carousel";
 import { getLatestProperties } from "@/features/properties/queries";
@@ -8,14 +10,24 @@ import type { Property } from "@/features/properties/types";
 
 export default function Featured() {
   return (
-    <section className="py-20">
-      <div className="container mx-auto tracking-wide">
-        <h2 className="mb-4 text-4xl">Properties We Love</h2>
-        <p className="mb-6">A selection of our favourite sales listings</p>
-        <Suspense fallback={<FeaturedSkeleton />}>
-          <FeaturedListings />
-        </Suspense>
+    <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
+      <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-3xl font-semibold">Homes we love</h2>
+          <p className="mt-2 text-muted-foreground">
+            A few of our favourite listings right now.
+          </p>
+        </div>
+        <Link
+          href="/properties"
+          className="inline-flex h-11 items-center gap-1 text-sm font-medium text-primary hover:underline underline-offset-4"
+        >
+          Browse all homes <ArrowRightIcon aria-hidden className="size-4" />
+        </Link>
       </div>
+      <Suspense fallback={<FeaturedSkeleton />}>
+        <FeaturedListings />
+      </Suspense>
     </section>
   );
 }
@@ -27,7 +39,7 @@ async function FeaturedListings() {
 
   let properties: Property[] = [];
   try {
-    properties = await getLatestProperties(5);
+    properties = await getLatestProperties(6);
   } catch (error) {
     unstable_rethrow(error);
     // The strip is decorative: if it fails, the rest of the page still works.
@@ -40,9 +52,13 @@ async function FeaturedListings() {
 
 function FeaturedSkeleton() {
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 3 }, (_, i) => (
-        <Skeleton key={i} className="h-[560px] rounded-lg" />
+        <div key={i} className="space-y-3">
+          <Skeleton className="aspect-[4/3] w-full rounded-xl" />
+          <Skeleton className="h-7 w-1/2" />
+          <Skeleton className="h-5 w-3/4" />
+        </div>
       ))}
     </div>
   );

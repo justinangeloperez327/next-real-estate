@@ -4,35 +4,56 @@ import {
   PROPERTY_TYPES,
 } from "@/features/properties/types";
 
-const count = z.coerce
-  .number({ error: "Must be a number" })
-  .int("Must be a whole number")
-  .min(0, "Cannot be negative")
-  .max(100, "Too large");
+/**
+ * A number from a form field. Blank input is "required", not 0 (plain
+ * z.coerce.number() turns "" into 0 and silently accepts it).
+ */
+function numberField(requiredMessage: string) {
+  return z.preprocess(
+    (v) =>
+      typeof v === "string" ? (v.trim() === "" ? undefined : Number(v)) : v,
+    z.number({
+      error: (issue) =>
+        issue.input === undefined ? requiredMessage : "Enter a number",
+    }),
+  );
+}
+
+const count = (label: string) =>
+  numberField(`Enter the number of ${label}`).pipe(
+    z
+      .number()
+      .int("Use a whole number")
+      .min(0, "Use 0 or more")
+      .max(100, "Use 100 or fewer"),
+  );
 
 export const propertyInputSchema = z.object({
-  title: z.string().trim().min(1, "Title is required").max(200),
-  description: z.string().trim().min(1, "Description is required").max(5000),
-  address: z.string().trim().min(1, "Address is required").max(500),
-  price: z.coerce
-    .number({ error: "Must be a number" })
-    .int("Must be a whole number")
-    .min(0, "Cannot be negative"),
-  beds: count,
-  baths: count,
-  carpark: count,
+  title: z.string().trim().min(1, "Enter a title").max(200),
+  description: z.string().trim().min(1, "Enter a description").max(5000),
+  address: z.string().trim().min(1, "Enter the address").max(500),
+  price: numberField("Enter a price").pipe(
+    z.number().int("Use a whole number").min(0, "Use 0 or more"),
+  ),
+  beds: count("bedrooms"),
+  baths: count("bathrooms"),
+  carpark: count("car parks"),
   // Checkboxes submit "on" when checked and nothing when unchecked.
   pool: z.preprocess((v) => v === "on" || v === "true", z.boolean()),
   property_type: z.enum(PROPERTY_TYPES, { error: "Select a property type" }),
   category: z.enum(PROPERTY_CATEGORIES, { error: "Select a category" }),
-  latitude: z.coerce
-    .number({ error: "Must be a number" })
-    .min(-90, "Must be between -90 and 90")
-    .max(90, "Must be between -90 and 90"),
-  longitude: z.coerce
-    .number({ error: "Must be a number" })
-    .min(-180, "Must be between -180 and 180")
-    .max(180, "Must be between -180 and 180"),
+  latitude: numberField("Enter the latitude").pipe(
+    z
+      .number()
+      .min(-90, "Use a value from -90 to 90")
+      .max(90, "Use a value from -90 to 90"),
+  ),
+  longitude: numberField("Enter the longitude").pipe(
+    z
+      .number()
+      .min(-180, "Use a value from -180 to 180")
+      .max(180, "Use a value from -180 to 180"),
+  ),
 });
 
 export type PropertyInput = z.infer<typeof propertyInputSchema>;

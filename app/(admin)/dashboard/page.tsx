@@ -17,16 +17,21 @@ export default async function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="Dashboard" />
+      <PageHeader
+        title="Dashboard"
+        description="An overview of your listings."
+      />
       <div className="grid gap-4 md:grid-cols-3">
         {stats.map((stat) => (
           <Link
             key={stat.label}
             href="/dashboard/properties"
-            className="rounded-xl border bg-muted/50 p-6 transition-colors hover:bg-muted"
+            className="rounded-xl border bg-card p-6 hover:bg-accent"
           >
             <p className="text-sm text-muted-foreground">{stat.label}</p>
-            <p className="mt-2 text-3xl font-semibold">{stat.value}</p>
+            <p className="mt-2 text-3xl font-semibold tabular-nums">
+              {stat.value}
+            </p>
           </Link>
         ))}
       </div>

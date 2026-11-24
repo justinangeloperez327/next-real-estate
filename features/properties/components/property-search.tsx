@@ -2,14 +2,13 @@
 
 import Form from "next/form";
 import { useSearchParams } from "next/navigation";
+import { SearchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -19,21 +18,21 @@ import {
   propertyTypes,
 } from "@/features/properties/constants";
 
-const fieldClass = "w-full rounded-sm bg-white/80 py-1 text-lg text-black";
+const fieldClass = "w-full bg-background text-foreground";
 
 type Option = { text: string; value: string };
 
 const selects: { name: string; label: string; options: Option[] }[] = [
   {
     name: "property_type",
-    label: "Property Type",
+    label: "Type",
     options: propertyTypes.map((t) => ({ text: t, value: t.toLowerCase() })),
   },
   { name: "beds", label: "Beds", options: propertyFeatures },
   { name: "baths", label: "Baths", options: propertyFeatures },
-  { name: "carpark", label: "Carpark", options: propertyFeatures },
-  { name: "minPrice", label: "Min Price", options: priceRange },
-  { name: "maxPrice", label: "Max Price", options: priceRange },
+  { name: "carpark", label: "Car parks", options: propertyFeatures },
+  { name: "minPrice", label: "Min price", options: priceRange },
+  { name: "maxPrice", label: "Max price", options: priceRange },
 ];
 
 /**
@@ -45,46 +44,58 @@ export default function PropertySearch() {
   const params = useSearchParams();
 
   return (
-    <Form action="/properties">
-      <label htmlFor="search" className="sr-only">
-        Search by address
-      </label>
-      <Input
-        id="search"
-        name="search"
-        placeholder="Search Address"
-        defaultValue={params.get("search") ?? ""}
-        className={fieldClass}
-      />
-      <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+    <Form
+      action="/properties"
+      role="search"
+      aria-label="Search properties"
+      className="rounded-xl border bg-card p-4 text-left text-card-foreground shadow-lg sm:p-5"
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex-1">
+          <label htmlFor="search" className="mb-1.5 block text-sm font-medium">
+            Location
+          </label>
+          <Input
+            id="search"
+            name="search"
+            type="search"
+            placeholder="Suburb, street or address"
+            defaultValue={params.get("search") ?? ""}
+            className={fieldClass}
+          />
+        </div>
+        <Button type="submit" className="sm:w-36">
+          <SearchIcon aria-hidden className="mr-2 size-4" />
+          Search
+        </Button>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {selects.map(({ name, label, options }) => (
-          <Select
-            key={name}
-            name={name}
-            defaultValue={params.get(name) ?? undefined}
-          >
-            <SelectTrigger aria-label={label} className={fieldClass}>
-              <SelectValue placeholder={label} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>{label}</SelectLabel>
+          <div key={name}>
+            <label
+              id={`${name}-label`}
+              className="mb-1.5 block text-sm font-medium text-muted-foreground"
+            >
+              {label}
+            </label>
+            <Select name={name} defaultValue={params.get(name) ?? undefined}>
+              <SelectTrigger
+                aria-labelledby={`${name}-label`}
+                className={fieldClass}
+              >
+                <SelectValue placeholder="Any" />
+              </SelectTrigger>
+              <SelectContent>
                 {options.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.text}
                   </SelectItem>
                 ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+              </SelectContent>
+            </Select>
+          </div>
         ))}
       </div>
-      <Button
-        type="submit"
-        className="mt-4 w-full bg-rose-600 text-lg hover:bg-rose-500 lg:w-1/2"
-      >
-        Search
-      </Button>
     </Form>
   );
 }

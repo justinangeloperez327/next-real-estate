@@ -1,13 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { DraftNotice } from "@/components/forms/draft-notice";
+import { useFormDraft } from "@/components/forms/use-form-draft";
 import { FormAlert } from "@/components/forms/form-alert";
 import { FormField } from "@/components/forms/form-field";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { sendContactMessage } from "@/features/contact/actions";
-import type { ContactField } from "@/features/contact/schema";
+import { useFieldValidation } from "@/components/forms/use-field-validation";
+import { contactSchema, type ContactField } from "@/features/contact/schema";
 import { initialFormState, type FormState } from "@/lib/forms";
 
 export function ContactForm() {
@@ -15,12 +18,18 @@ export function ContactForm() {
     sendContactMessage,
     initialFormState as FormState<ContactField>,
   );
-  const errors = state.fieldErrors ?? {};
+  const v = useFieldValidation(contactSchema, state.fieldErrors);
   const values = state.values ?? {};
+  const draft = useFormDraft("draft:contact", { exclude: ["website"] });
+  const { clear } = draft;
+
+  useEffect(() => {
+    if (state.status === "success") clear();
+  }, [state.status, clear]);
 
   if (state.status === "success") {
     return (
-      <div className="mt-8 rounded-md bg-gray-800 p-6">
+      <div className="rounded-xl border bg-card p-6">
         <FormAlert status="success">{state.message}</FormAlert>
       </div>
     );
@@ -28,16 +37,19 @@ export function ContactForm() {
 
   return (
     <form
+      {...draft.formProps}
       action={action}
       noValidate
-      className="mt-8 space-y-6 rounded-md bg-gray-800 p-6"
+      className="space-y-5 rounded-xl border bg-card p-6 sm:p-8"
     >
-      <h2 className="text-lg">We&apos;re here to help</h2>
+      <h2 className="text-lg font-semibold">Send us a message</h2>
+      {draft.restored && <DraftNotice onDiscard={draft.discard} />}
       <div className="grid gap-6 sm:grid-cols-2">
-        <FormField id="name" label="Name" error={errors.name}>
+        <FormField id="name" label="Name" error={v.errorFor("name")}>
           {(aria) => (
             <Input
               {...aria}
+              {...v.fieldProps("name")}
               name="name"
               autoComplete="name"
               defaultValue={values.name}
@@ -45,10 +57,11 @@ export function ContactForm() {
             />
           )}
         </FormField>
-        <FormField id="email" label="Email" error={errors.email}>
+        <FormField id="email" label="Email" error={v.errorFor("email")}>
           {(aria) => (
             <Input
               {...aria}
+              {...v.fieldProps("email")}
               name="email"
               type="email"
               autoComplete="email"
@@ -58,10 +71,15 @@ export function ContactForm() {
           )}
         </FormField>
       </div>
-      <FormField id="phone" label="Phone (optional)" error={errors.phone}>
+      <FormField
+        id="phone"
+        label="Phone (optional)"
+        error={v.errorFor("phone")}
+      >
         {(aria) => (
           <Input
             {...aria}
+            {...v.fieldProps("phone")}
             name="phone"
             type="tel"
             autoComplete="tel"
@@ -69,10 +87,11 @@ export function ContactForm() {
           />
         )}
       </FormField>
-      <FormField id="message" label="Message" error={errors.message}>
+      <FormField id="message" label="Message" error={v.errorFor("message")}>
         {(aria) => (
           <Textarea
             {...aria}
+            {...v.fieldProps("message")}
             name="message"
             rows={5}
             defaultValue={values.message}
@@ -89,7 +108,7 @@ export function ContactForm() {
       <SubmitButton
         pending={pending}
         pendingText="Sending…"
-        variant="secondary"
+        className="w-full sm:w-auto"
       >
         Send message
       </SubmitButton>

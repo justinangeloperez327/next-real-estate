@@ -1,39 +1,61 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { PropertyFeatures } from "@/features/properties/components/property-features";
 import { formatPrice } from "@/lib/format";
 import type { Property } from "@/features/properties/types";
 
 export function PropertyCard({ property }: { property: Property }) {
+  const forRent = property.category === "rent";
+
   return (
-    <Link
-      href={`/properties/${property.id}`}
-      className="group relative mx-4 block h-[560px] overflow-hidden rounded-lg text-white shadow-xl lg:mx-0"
-    >
-      <div className="overflow-hidden">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground hover:shadow-sm">
+      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         <Image
           src="/images/properties/1.jpeg"
-          width={420}
-          height={400}
-          alt={property.title}
-          className="h-96 w-full rounded-lg object-cover transition-transform duration-300 group-hover:scale-110"
+          fill
+          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          alt=""
+          className="object-cover transition-transform duration-300 ease-out motion-safe:group-hover:scale-[1.03]"
         />
       </div>
-      <div className="px-4 pt-4 pb-2 capitalize">
-        <h3 className="text-2xl group-hover:text-rose-600">
-          {property.address}
+      <div className="flex flex-1 flex-col gap-2 p-5">
+        <p className="text-sm text-muted-foreground">
+          {forRent ? "For rent" : "For sale"} ·{" "}
+          <span className="capitalize">{property.property_type}</span>
+        </p>
+        <p className="text-2xl font-semibold tabular-nums">
+          {formatPrice(property.price)}
+          {forRent && (
+            <span className="text-base font-normal text-muted-foreground">
+              {" "}
+              / month
+            </span>
+          )}
+        </p>
+        <h3 className="font-medium">
+          {/* Stretched link: the whole card is clickable, but only the
+              title is announced as the link name. */}
+          <Link
+            href={`/properties/${property.id}`}
+            className="after:absolute after:inset-0 focus-visible:outline-hidden group-has-[:focus-visible]:underline"
+          >
+            {property.title}
+          </Link>
         </h3>
-      </div>
-      <div className="mt-2 px-4 text-2xl">{formatPrice(property.price)}</div>
-      <div className="mt-4 flex justify-between px-4">
-        <PropertyFeatures property={property} className="gap-4" />
-        <ChevronRight
-          size={32}
-          aria-hidden
-          className="mr-3 transition-all duration-300 group-hover:mr-0 group-hover:text-rose-600"
+        <p className="line-clamp-1 text-sm text-muted-foreground">
+          {property.address}
+        </p>
+        <PropertyFeatures
+          property={property}
+          className="mt-auto gap-5 border-t pt-4 text-sm"
+          iconClassName="size-4 text-muted-foreground"
         />
       </div>
-    </Link>
+      {/* Visible focus ring for the stretched link. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-xl ring-ring ring-offset-2 group-has-[a:focus-visible]:ring-2"
+      />
+    </article>
   );
 }

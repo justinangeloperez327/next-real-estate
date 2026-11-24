@@ -44,7 +44,7 @@ export function FormField({
         </p>
       )}
       {message && (
-        <p id={`${id}-error`} className="text-sm text-red-400">
+        <p id={`${id}-error`} className="text-sm text-destructive">
           {message}
         </p>
       )}

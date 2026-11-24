@@ -9,7 +9,7 @@ export default function CreatePropertyPage() {
   return (
     <>
       <PageHeader title="Create Property" />
-      <div className="max-w-3xl rounded-md border px-6 py-6 shadow-lg">
+      <div className="max-w-3xl rounded-xl border bg-card p-6 sm:p-8">
         <PropertyForm
           action={createProperty}
           submitLabel="Create property"

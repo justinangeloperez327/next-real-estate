@@ -16,7 +16,7 @@ const STORY = [
 
 const SECTIONS = [
   {
-    title: "Our Community",
+    title: "Our community",
     image: "/images/community.jpg",
     body: [
       "We live and work in the communities we sell in. That local knowledge means honest advice about schools, transport and what each street is really like.",
@@ -24,7 +24,7 @@ const SECTIONS = [
     ],
   },
   {
-    title: "Our Approach",
+    title: "Our approach",
     image: "/images/community2.jpg",
     body: [
       "Clear pricing, regular updates and no pressure. We tell you what we'd do if it were our own home.",
@@ -38,33 +38,36 @@ export default function AboutPage() {
     <>
       <PageHero
         image="/images/about.jpg"
-        title="Making your real estate experience more enjoyable."
+        title="Making your move feel easier"
         subtitle="Our passion is people and property."
       />
 
-      <section className="container mx-auto my-16 max-w-3xl">
-        <h2 className="text-2xl font-semibold tracking-wider">Our Story</h2>
-        <div className="mt-4 space-y-4 text-lg leading-relaxed">
+      <section className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6">
+        <h2 className="text-2xl font-semibold">Our story</h2>
+        <div className="mt-4 space-y-4 text-lg leading-relaxed text-muted-foreground">
           {STORY.map((p) => (
             <p key={p}>{p}</p>
           ))}
         </div>
       </section>
 
-      <section className="container mx-auto my-16 space-y-8">
+      <section className="mx-auto w-full max-w-6xl space-y-6 px-4 pb-20 sm:px-6">
         {SECTIONS.map((section, i) => (
-          <div key={section.title} className="grid items-center md:grid-cols-2">
+          <div
+            key={section.title}
+            className="grid items-stretch overflow-hidden rounded-xl border md:grid-cols-2"
+          >
             <div
               className={cn(
                 "flex flex-col justify-center gap-4 p-8",
                 i % 2 === 1 && "md:order-2",
               )}
             >
-              <h3 className="text-xl font-bold tracking-widest">
-                {section.title}
-              </h3>
+              <h3 className="text-xl font-semibold">{section.title}</h3>
               {section.body.map((p) => (
-                <p key={p}>{p}</p>
+                <p key={p} className="text-muted-foreground">
+                  {p}
+                </p>
               ))}
             </div>
             <div className="relative h-80 md:h-96">

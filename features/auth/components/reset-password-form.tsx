@@ -6,14 +6,16 @@ import { FormAlert } from "@/components/forms/form-alert";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { resetPasswordAction } from "@/features/auth/actions";
 import { PasswordField } from "@/features/auth/components/auth-fields";
+import { useFieldValidation } from "@/components/forms/use-field-validation";
 import { initialFormState } from "@/lib/forms";
+import { resetPasswordSchema } from "@/features/auth/schema";
 
 export function ResetPasswordForm() {
   const [state, action, pending] = useActionState(
     resetPasswordAction,
     initialFormState,
   );
-  const errors = state.fieldErrors ?? {};
+  const v = useFieldValidation(resetPasswordSchema, state.fieldErrors);
 
   if (state.status === "success") {
     return (
@@ -32,13 +34,15 @@ export function ResetPasswordForm() {
         label="New password"
         autoComplete="new-password"
         hint="At least 8 characters."
-        error={errors.password}
+        error={v.errorFor("password")}
+        {...v.fieldProps("password")}
       />
       <PasswordField
         id="confirmPassword"
         label="Confirm new password"
         autoComplete="new-password"
-        error={errors.confirmPassword}
+        error={v.errorFor("confirmPassword")}
+        {...v.fieldProps("confirmPassword")}
       />
       <FormAlert status={state.status}>{state.message}</FormAlert>
       <SubmitButton pending={pending} pendingText="Updating…">

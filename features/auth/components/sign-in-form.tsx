@@ -10,24 +10,34 @@ import {
   EmailField,
   PasswordField,
 } from "@/features/auth/components/auth-fields";
+import { useFieldValidation } from "@/components/forms/use-field-validation";
 import { initialFormState } from "@/lib/forms";
+import { signInSchema } from "@/features/auth/schema";
 
 export function SignInForm() {
   const [state, action, pending] = useActionState(
     signInAction,
     initialFormState,
   );
+  const v = useFieldValidation(signInSchema, state.fieldErrors);
   // Errors from the email-link callback arrive as ?error=…
   const linkError = useSearchParams().get("error");
-  const errors = state.fieldErrors ?? {};
 
   return (
     <form action={action} noValidate className="flex flex-col gap-4">
       <FormAlert status="error">{!state.status && linkError}</FormAlert>
-      <EmailField error={errors.email} defaultValue={state.values?.email} />
-      <PasswordField autoComplete="current-password" error={errors.password} />
+      <EmailField
+        error={v.errorFor("email")}
+        {...v.fieldProps("email")}
+        defaultValue={state.values?.email}
+      />
+      <PasswordField
+        autoComplete="current-password"
+        error={v.errorFor("password")}
+        {...v.fieldProps("password")}
+      />
       <Link
-        className="-mt-2 self-end text-xs underline"
+        className="-mt-3 inline-flex h-11 items-center self-end text-sm underline underline-offset-4"
         href="/forgot-password"
       >
         Forgot password?

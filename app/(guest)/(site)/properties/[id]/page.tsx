@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ChevronLeftIcon, MailIcon, PhoneIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -62,95 +65,143 @@ async function PropertyDetail({
   const property = await getProperty(id);
   if (!property) notFound();
 
-  return (
-    <div className="mx-auto mt-10 min-h-screen max-w-6xl px-4 xl:px-0">
-      <section className="flex items-center justify-center">
-        <Carousel className="mx-12 w-full xl:mx-0">
-          <CarouselContent>
-            {GALLERY.map((image, i) => (
-              <CarouselItem key={image.src}>
-                <AspectRatio ratio={16 / 9} className="bg-muted">
-                  <Image
-                    src={image.src}
-                    alt={`${property.title} – ${image.alt}`}
-                    fill
-                    priority={i === 0}
-                    sizes="(min-width: 1152px) 1152px, 100vw"
-                    className="object-cover"
-                  />
-                </AspectRatio>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
-      </section>
+  const forRent = property.category === "rent";
+  const facts: [string, React.ReactNode][] = [
+    [
+      "Type",
+      <span key="t" className="capitalize">
+        {property.property_type}
+      </span>,
+    ],
+    ["Listing", forRent ? "For rent" : "For sale"],
+    ["Bedrooms", property.beds],
+    ["Bathrooms", property.baths],
+    ["Car parks", property.carpark],
+    ["Pool", property.pool ? "Yes" : "No"],
+  ];
 
-      <section className="my-10 flex flex-col gap-8 lg:flex-row">
-        <div className="lg:basis-2/3">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-wide">
-              {property.address}
-            </h1>
-            <p className="text-2xl">
+  return (
+    <article className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
+      <Link
+        href="/properties"
+        className="-ml-2 inline-flex h-11 items-center gap-1 px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ChevronLeftIcon aria-hidden className="size-4" />
+        All homes
+      </Link>
+
+      <Carousel className="mt-2" aria-label="Photos">
+        <CarouselContent>
+          {GALLERY.map((image, i) => (
+            <CarouselItem key={image.src}>
+              <AspectRatio
+                ratio={16 / 9}
+                className="overflow-hidden rounded-xl bg-muted"
+              >
+                <Image
+                  src={image.src}
+                  alt={`${property.title}: ${image.alt}`}
+                  fill
+                  priority={i === 0}
+                  sizes="(min-width: 1152px) 1152px, 100vw"
+                  className="object-cover"
+                />
+              </AspectRatio>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious className="left-3 size-11 border-0 bg-background/90 shadow-sm" />
+        <CarouselNext className="right-3 size-11 border-0 bg-background/90 shadow-sm" />
+      </Carousel>
+
+      <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_340px]">
+        <div className="min-w-0">
+          <header className="border-b pb-6">
+            <p className="text-sm text-muted-foreground">
+              {forRent ? "For rent" : "For sale"}
+            </p>
+            <h1 className="mt-1 text-3xl font-semibold">{property.title}</h1>
+            <p className="mt-2 text-muted-foreground">{property.address}</p>
+            <p className="mt-4 text-3xl font-semibold tabular-nums">
               {formatPrice(property.price)}
-              {property.category === "rent" && (
-                <span className="text-base text-muted-foreground">
+              {forRent && (
+                <span className="text-lg font-normal text-muted-foreground">
                   {" "}
                   / month
                 </span>
               )}
             </p>
-            <PropertyFeatures property={property} />
-          </div>
+            <PropertyFeatures property={property} className="mt-4" />
+          </header>
 
-          <hr className="my-8 border-gray-400" />
-
-          <div className="space-y-4">
-            <h2 className="text-2xl">{property.title}</h2>
-            <p className="whitespace-pre-line text-lg tracking-wide">
+          <section className="border-b py-8">
+            <h2 className="text-xl font-semibold">About this home</h2>
+            <p className="mt-4 max-w-prose whitespace-pre-line leading-relaxed">
               {property.description}
             </p>
-            {property.pool && <p className="text-lg">✓ Swimming pool</p>}
-          </div>
+          </section>
 
-          <hr className="my-8 border-gray-400" />
+          <section className="border-b py-8">
+            <h2 className="text-xl font-semibold">Key facts</h2>
+            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+              {facts.map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-sm text-muted-foreground">{label}</dt>
+                  <dd className="mt-0.5 font-medium tabular-nums">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
 
-          <div className="space-y-4 pb-20">
-            <h2 className="text-2xl">Location</h2>
-            <PropertyMap points={[property]} zoom={15} />
-          </div>
+          <section className="py-8">
+            <h2 className="text-xl font-semibold">Location</h2>
+            <div className="mt-4">
+              <PropertyMap points={[property]} zoom={15} height={400} />
+            </div>
+          </section>
         </div>
 
-        <aside className="space-y-4 lg:basis-1/3">
-          <div className="space-y-8 rounded-md bg-gray-800 p-4">
-            {AGENTS.map((agent) => (
-              <div key={agent.email} className="flex gap-4">
+        <aside className="lg:sticky lg:top-24 lg:self-start">
+          {AGENTS.map((agent) => (
+            <div key={agent.email} className="rounded-xl border bg-card p-6">
+              <h2 className="text-sm font-medium text-muted-foreground">
+                Your agent
+              </h2>
+              <div className="mt-4 flex items-center gap-4">
                 <Image
                   src={agent.photo}
-                  alt={agent.name}
-                  width={100}
-                  height={100}
-                  className="h-[100px] w-[100px] rounded-full object-cover grayscale"
+                  alt=""
+                  width={64}
+                  height={64}
+                  className="size-16 rounded-full object-cover"
                 />
-                <div className="min-w-0 space-y-2">
-                  <h3 className="text-lg">{agent.name}</h3>
-                  <a href={`mailto:${agent.email}`} className="block truncate">
+                <div className="min-w-0">
+                  <p className="font-semibold">{agent.name}</p>
+                  <p className="truncate text-sm text-muted-foreground">
                     {agent.email}
-                  </a>
-                  <a
-                    href={`tel:${agent.phone.replaceAll("-", "")}`}
-                    className="block w-full rounded-md bg-slate-500 px-2 py-1 text-center hover:bg-slate-600"
-                  >
-                    Call {agent.phone}
-                  </a>
+                  </p>
                 </div>
               </div>
-            ))}
-          </div>
+              <div className="mt-6 grid gap-2">
+                <Button asChild>
+                  <a
+                    href={`mailto:${agent.email}?subject=${encodeURIComponent(property.title)}`}
+                  >
+                    <MailIcon aria-hidden className="mr-2 size-4" />
+                    Email {agent.name.split(" ")[0]}
+                  </a>
+                </Button>
+                <Button asChild variant="outline">
+                  <a href={`tel:${agent.phone.replaceAll("-", "")}`}>
+                    <PhoneIcon aria-hidden className="mr-2 size-4" />
+                    Call {agent.phone}
+                  </a>
+                </Button>
+              </div>
+            </div>
+          ))}
         </aside>
-      </section>
-    </div>
+      </div>
+    </article>
   );
 }

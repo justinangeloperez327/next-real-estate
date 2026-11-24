@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { deleteProperty } from "@/features/properties/actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,7 @@ export function DeleteButton({
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
   const handleDelete = () => {
     setError(undefined);
@@ -38,7 +39,14 @@ export function DeleteButton({
       <SheetTrigger asChild>
         <Button variant="destructive">Delete</Button>
       </SheetTrigger>
-      <SheetContent side="right">
+      <SheetContent
+        side="right"
+        // Default focus on the safe choice; Escape and Cancel do nothing.
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          cancelRef.current?.focus();
+        }}
+      >
         <SheetHeader>
           <SheetTitle>Delete “{title}”?</SheetTitle>
           <SheetDescription>
@@ -51,7 +59,11 @@ export function DeleteButton({
           </p>
         )}
         <SheetFooter className="mt-6 gap-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button
+            ref={cancelRef}
+            variant="outline"
+            onClick={() => setOpen(false)}
+          >
             Keep property
           </Button>
           <Button

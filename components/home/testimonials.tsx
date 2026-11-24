@@ -2,40 +2,39 @@
 const TESTIMONIALS = [
   {
     quote:
-      "The best real estate service I have ever experienced. Highly recommended!",
+      "They listened to what we actually needed and found us a place we hadn't even considered. We couldn't be happier.",
     name: "John Doe",
-    role: "Home Buyer",
+    role: "Bought a family home",
   },
   {
     quote:
-      "Professional and efficient. They helped me find my dream home in no time.",
+      "Clear, calm and always quick to reply. Selling felt far less stressful than I expected.",
     name: "Jane Smith",
-    role: "Home Buyer",
+    role: "Sold an apartment",
   },
   {
     quote:
-      "Great experience from start to finish. The team was very supportive.",
+      "From the first viewing to getting the keys, we always knew what was happening next.",
     name: "Michael Johnson",
-    role: "Home Seller",
+    role: "First-time buyer",
   },
 ];
 
 export default function Testimonials() {
   return (
-    <section className="py-20">
-      <div className="container mx-auto text-center">
-        <h2 className="mb-4 text-4xl">What Our Clients Say</h2>
-        <p className="mb-6">Testimonials from our happy clients</p>
-        <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <section className="border-y bg-muted">
+      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <h2 className="text-3xl font-semibold">What our clients say</h2>
+        <ul className="mt-10 grid gap-6 md:grid-cols-3">
           {TESTIMONIALS.map((t) => (
             <li key={t.name}>
-              <figure className="h-full rounded-sm bg-white p-6 text-black shadow-lg">
-                <blockquote className="mb-4 text-gray-800">
+              <figure className="flex h-full flex-col rounded-xl border bg-card p-6">
+                <blockquote className="flex-1 text-card-foreground">
                   “{t.quote}”
                 </blockquote>
-                <figcaption>
-                  <p className="text-lg font-bold">{t.name}</p>
-                  <p className="text-sm text-gray-600">{t.role}</p>
+                <figcaption className="mt-6 border-t pt-4">
+                  <p className="font-medium">{t.name}</p>
+                  <p className="text-sm text-muted-foreground">{t.role}</p>
                 </figcaption>
               </figure>
             </li>

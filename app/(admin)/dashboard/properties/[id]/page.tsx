@@ -52,14 +52,18 @@ async function AdminPropertyPageContent({
           </>
         }
       />
-      <div className="max-w-3xl overflow-hidden rounded-lg border p-6 shadow-lg">
-        <h2 className="mb-4 text-2xl font-bold">{property.title}</h2>
-        <p className="mb-6 whitespace-pre-line">{property.description}</p>
+      <div className="max-w-3xl rounded-xl border bg-card p-6 sm:p-8">
+        <h2 className="mb-2 text-2xl font-semibold">{property.title}</h2>
+        <p className="mb-8 max-w-prose whitespace-pre-line text-muted-foreground">
+          {property.description}
+        </p>
         <dl className="grid gap-4 sm:grid-cols-2">
           {details.map(([label, value]) => (
             <div key={label}>
               <dt className="text-sm text-muted-foreground">{label}</dt>
-              <dd className="font-semibold capitalize">{value}</dd>
+              <dd className="mt-0.5 font-medium capitalize tabular-nums">
+                {value}
+              </dd>
             </div>
           ))}
         </dl>

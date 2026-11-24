@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Client wrapper for scroll behaviour. With `overlay` the bar is transparent
- * over a hero and turns solid once the page scrolls.
+ * Client wrapper for scroll behaviour. With `overlay` the bar sits
+ * transparent over a photo hero (white text) and becomes a solid surface
+ * once the page scrolls.
  */
 export function NavbarShell({
   overlay = false,
@@ -18,22 +19,26 @@ export function NavbarShell({
 
   useEffect(() => {
     if (!overlay) return;
-    const onScroll = () => setIsScrolled(window.scrollY > 50);
+    const onScroll = () => setIsScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [overlay]);
 
+  const transparent = overlay && !isScrolled;
+
   return (
-    <nav
+    <header
+      data-transparent={transparent || undefined}
       className={cn(
-        "top-0 z-50 flex h-16 w-full justify-center border-b border-b-foreground/10 text-white",
-        overlay
-          ? cn("fixed", isScrolled ? "bg-black" : "bg-transparent")
-          : "bg-black",
+        "group/nav top-0 z-50 w-full border-b",
+        overlay ? "fixed" : "sticky",
+        transparent
+          ? "border-transparent bg-transparent text-white"
+          : "border-border bg-background text-foreground",
       )}
     >
       {children}
-    </nav>
+    </header>
   );
 }

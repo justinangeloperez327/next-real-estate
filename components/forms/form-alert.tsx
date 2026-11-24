@@ -15,10 +15,10 @@ export function FormAlert({
     <p
       role={status === "error" ? "alert" : "status"}
       className={cn(
-        "border-l-2 px-4 text-sm",
+        "rounded-md border px-4 py-3 text-sm",
         status === "error"
-          ? "border-red-400 text-red-400"
-          : "border-emerald-400 text-emerald-300",
+          ? "border-destructive/40 bg-destructive/5 text-destructive"
+          : "border-success/40 bg-success/5 text-success",
         className,
       )}
     >
