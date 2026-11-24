@@ -17,7 +17,7 @@ export function PropertyCard({
   const photo = listing.photos[0];
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground hover:shadow-sm">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground hover:border-input hover:shadow-sm">
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         {photo ? (
           <Image
@@ -40,7 +40,7 @@ export function PropertyCard({
           {CATEGORY_LABEL[listing.category]} · {listing.propertyType}
           {listing.isPending && " · Pending"}
         </p>
-        <p className="text-2xl font-semibold tabular-nums">
+        <p className="text-2xl font-semibold tracking-tight text-primary tabular-nums">
           {formatListingPrice(listing.price, listing.priceMax)}
           {listing.category === "rent" && listing.price !== null && (
             <span className="text-base font-normal text-muted-foreground">
@@ -49,7 +49,7 @@ export function PropertyCard({
             </span>
           )}
         </p>
-        <h3 className="font-medium">
+        <h3 className="font-medium group-hover:underline underline-offset-4">
           {/* Stretched link: the whole card is clickable, but only the
               address is announced as the link name. */}
           <Link
@@ -72,7 +72,7 @@ export function PropertyCard({
       </div>
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-xl ring-ring ring-offset-2 group-has-[a:focus-visible]:ring-2"
+        className="pointer-events-none absolute inset-0 rounded-xl ring-ring group-has-[a:focus-visible]:ring-2 group-has-[a:focus-visible]:ring-inset"
       />
     </article>
   );

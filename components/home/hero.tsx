@@ -1,41 +1,43 @@
+import Image from "next/image";
+import Link from "next/link";
 import { Suspense } from "react";
 import PropertySearch from "@/features/properties/components/property-search";
+import { DEFAULT_LOCATION } from "@/features/properties/constants";
 
 export default function Hero() {
   return (
-    <section className="relative isolate flex min-h-[640px] items-center justify-center px-4 pt-24 pb-16 md:h-[88vh]">
-      {/* 2 MB 720p loop; the poster paints immediately while it loads.
-          People who prefer reduced motion get the still poster only. */}
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="metadata"
-        poster="/images/hero-poster.jpg"
-        aria-hidden
-        className="absolute inset-0 -z-10 h-full w-full object-cover motion-reduce:hidden"
-      >
-        <source src="/videos/hero.mp4" type="video/mp4" />
-      </video>
-      <div
-        aria-hidden
-        className="absolute inset-0 -z-10 hidden bg-[url(/images/hero-poster.jpg)] bg-cover bg-center motion-reduce:block"
-      />
-      {/* 65% slate keeps white text at AA over any frame. */}
-      <div aria-hidden className="absolute inset-0 -z-10 bg-slate-950/65" />
-      <div className="w-full max-w-5xl text-center text-white">
-        <h1 className="text-4xl font-semibold sm:text-5xl">
-          Find a home that fits your life
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-white/90">
-          Browse houses and apartments for sale and rent, with local experts
-          ready to help when you need them.
-        </p>
-        <div className="mt-10">
-          <Suspense>
-            <PropertySearch />
-          </Suspense>
+    <section className="bg-muted">
+      <div className="container grid items-center gap-8 py-8 sm:py-12 lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:py-16">
+        <div className="min-w-0 lg:py-6">
+          <h1 className="font-display text-5xl font-normal leading-[0.98] sm:text-6xl xl:text-7xl">
+            Find a place to call home.
+          </h1>
+          <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
+            Explore homes for sale and rent. Start with a city, ZIP code, or
+            neighborhood.
+          </p>
+
+          <div className="mt-7">
+            <Suspense fallback={<div className="h-48 rounded-xl bg-card" />}>
+              <PropertySearch compact />
+            </Suspense>
+          </div>
+          <Link
+            href="/properties"
+            className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-current"
+          >
+            Browse homes in {DEFAULT_LOCATION}
+          </Link>
+        </div>
+        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-accent sm:aspect-[16/10] lg:aspect-[5/4]">
+          <Image
+            src="/images/properties/1.jpeg"
+            alt=""
+            fill
+            preload
+            sizes="(min-width: 1280px) 620px, (min-width: 1024px) 52vw, 100vw"
+            className="object-cover"
+          />
         </div>
       </div>
     </section>

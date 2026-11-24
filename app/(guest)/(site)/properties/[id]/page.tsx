@@ -90,7 +90,7 @@ async function PropertyDetail({
   const shownFacts = facts.filter((f): f is [string, string] => !!f[1]);
 
   return (
-    <article className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
+    <article className="container py-6 sm:py-8">
       <Link
         href="/properties"
         className="-ml-2 inline-flex h-11 items-center gap-1 px-2 text-sm text-muted-foreground hover:text-foreground"
@@ -101,14 +101,14 @@ async function PropertyDetail({
 
       <Gallery listing={listing} />
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_340px]">
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-12">
         <div className="min-w-0">
           <header className="border-b pb-6">
             <p className="text-sm text-muted-foreground">
               {CATEGORY_LABEL[listing.category]}
               {listing.isPending && " · Pending"}
             </p>
-            <h1 className="mt-1 text-3xl font-semibold">
+            <h1 className="mt-2 font-display text-4xl font-normal sm:text-5xl">
               {listing.address.line}
             </h1>
             <p className="mt-1 text-muted-foreground">
@@ -121,7 +121,7 @@ async function PropertyDetail({
                 .filter(Boolean)
                 .join(", ")}
             </p>
-            <p className="mt-4 text-3xl font-semibold tabular-nums">
+            <p className="mt-5 text-3xl font-semibold text-primary tabular-nums">
               {formatListingPrice(listing.price, listing.priceMax)}
               {rent && listing.price !== null && (
                 <span className="text-lg font-normal text-muted-foreground">
@@ -318,7 +318,7 @@ function ContactCard({ listing }: { listing: ListingDetail }) {
   const agent = listing.agent;
 
   return (
-    <div className="rounded-xl border bg-card p-6">
+    <div className="rounded-xl border bg-card p-6 shadow-sm">
       <h2 className="text-sm font-medium text-muted-foreground">
         {agent ? "Listed by" : "Interested in this home?"}
       </h2>

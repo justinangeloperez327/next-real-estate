@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ChevronLeftIcon, ChevronRightIcon, SearchXIcon } from "lucide-react";
-import { PageHero } from "@/components/layout/page-hero";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PropertyCard } from "@/features/properties/components/property-card";
@@ -25,17 +24,23 @@ export default function PropertiesPage({
 }: PageProps<"/properties">) {
   return (
     <>
-      <PageHero
-        image="/images/properties/hero.jpeg"
-        title="Homes for sale and rent"
-        subtitle="Search any US city, ZIP or neighborhood."
-      >
-        <Suspense>
-          <PropertySearch />
-        </Suspense>
-      </PageHero>
+      <section className="border-b bg-muted">
+        <div className="container py-8 sm:py-12">
+          <h1 className="font-display text-4xl font-normal sm:text-6xl">
+            Homes for sale and rent
+          </h1>
+          <p className="mt-3 text-muted-foreground sm:text-lg">
+            Search by US city, ZIP code, or neighborhood.
+          </p>
+          <div className="mt-6">
+            <Suspense fallback={<Skeleton className="h-36 rounded-xl" />}>
+              <PropertySearch />
+            </Suspense>
+          </div>
+        </div>
+      </section>
 
-      <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
+      <div className="container py-8 sm:py-12">
         <Suspense
           fallback={
             <>
@@ -58,12 +63,16 @@ async function PropertyResults({
   const { listings, total, page, hasNextPage } = await searchListings(filters);
   const location = filters.location || DEFAULT_LOCATION;
   const rent = filters.category === "rent";
-  const { page: _page, sort: _sort, ...narrowing } = filters;
-  const filtered = Object.keys(narrowing).length > 0;
+  const filtered = Object.entries(filters).some(
+    ([key, value]) =>
+      !["page", "sort"].includes(key) &&
+      value !== "0" &&
+      !(key === "category" && value === "sale"),
+  );
 
   if (listings.length === 0) {
     return (
-      <section className="mx-auto max-w-md py-12 text-center">
+      <section className="rounded-xl border bg-card px-5 py-12 text-center">
         <SearchXIcon
           aria-hidden
           className="mx-auto size-10 text-muted-foreground"
@@ -71,7 +80,7 @@ async function PropertyResults({
         <h2 className="mt-4 text-xl font-semibold">
           No homes match your search
         </h2>
-        <p className="mt-2 text-muted-foreground">
+        <p className="mx-auto mt-2 max-w-md text-muted-foreground">
           Check the spelling of the location, or try a wider price range or
           fewer filters.
         </p>
@@ -84,9 +93,9 @@ async function PropertyResults({
 
   return (
     <>
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-semibold">
+          <h2 className="text-xl font-semibold sm:text-2xl">
             <span className="tabular-nums">{formatNumber(total)}</span>{" "}
             {total === 1 ? "home" : "homes"} {rent ? "for rent" : "for sale"} in{" "}
             {location}
@@ -153,13 +162,13 @@ function Pagination({
   return (
     <nav
       aria-label="Pagination"
-      className="mt-10 flex items-center justify-between gap-4 border-t pt-6"
+      className="mt-10 grid grid-cols-[1fr_auto_1fr] items-center gap-x-2 border-t pt-6 sm:gap-x-4"
     >
       {page > 1 ? (
-        <Button asChild variant="outline">
-          <Link href={hrefFor(page - 1)}>
+        <Button asChild variant="outline" className="justify-self-start">
+          <Link href={hrefFor(page - 1)} aria-label="Previous page">
             <ChevronLeftIcon aria-hidden className="mr-1 size-4" />
-            Previous page
+            Previous
           </Link>
         </Button>
       ) : (
@@ -167,9 +176,9 @@ function Pagination({
       )}
       <p className="text-sm text-muted-foreground tabular-nums">Page {page}</p>
       {hasNextPage ? (
-        <Button asChild variant="outline">
-          <Link href={hrefFor(page + 1)}>
-            Next page
+        <Button asChild variant="outline" className="justify-self-end">
+          <Link href={hrefFor(page + 1)} aria-label="Next page">
+            Next
             <ChevronRightIcon aria-hidden className="ml-1 size-4" />
           </Link>
         </Button>

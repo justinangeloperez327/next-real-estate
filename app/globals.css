@@ -4,53 +4,49 @@
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
-  /*
-   * Design tokens (see .ux-profile.md: Stripe aesthetic, WCAG 2.1 AA).
-   * Light, restrained neutrals with one accent (teal). Contrast on white:
-   * foreground 17.9:1, muted-foreground 7.4:1, primary 5.5:1,
-   * destructive 4.8:1, success 5.1:1, input borders 3.3:1.
-   * `border` (slate-200) is for decorative dividers only.
-   */
+  /* Warm neutral surfaces with a deep green accent for actions and focus. */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 42 35% 98%;
+    --foreground: 157 27% 13%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 157 27% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 175 77% 26%;
+    --popover-foreground: 157 27% 13%;
+    --primary: 158 46% 24%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 175 80% 21%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 19% 35%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11%;
+    --primary-hover: 158 48% 19%;
+    --secondary: 42 26% 93%;
+    --secondary-foreground: 157 27% 13%;
+    --muted: 42 26% 93%;
+    --muted-foreground: 144 9% 33%;
+    --accent: 143 20% 91%;
+    --accent-foreground: 157 27% 13%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --success: 142 72% 29%;
-    --border: 214 32% 91%;
-    --input: 215 16% 57%;
-    --ring: 175 77% 26%;
-    --radius: 0.5rem;
-    --chart-1: 175 77% 26%;
-    --chart-2: 215 19% 35%;
+    --border: 46 17% 86%;
+    --input: 143 8% 50%;
+    --ring: 158 46% 24%;
+    --radius: 0.625rem;
+    --chart-1: 158 46% 24%;
+    --chart-2: 144 9% 33%;
     --chart-3: 199 89% 32%;
     --chart-4: 38 92% 40%;
     --chart-5: 262 52% 47%;
-    --sidebar-background: 210 40% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 175 77% 26%;
+    --sidebar-background: 42 26% 93%;
+    --sidebar-foreground: 157 27% 13%;
+    --sidebar-primary: 158 46% 24%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 93%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 175 77% 26%;
+    --sidebar-accent: 143 20% 91%;
+    --sidebar-accent-foreground: 157 27% 13%;
+    --sidebar-border: 46 17% 86%;
+    --sidebar-ring: 158 46% 24%;
   }
 }
 
 @theme inline {
+  --font-display: Georgia, "Times New Roman", serif;
+
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
@@ -93,13 +89,17 @@
 
 @utility container {
   margin-inline: auto;
-  padding-inline: 2rem;
-  max-width: 1400px;
+  padding-inline: clamp(1rem, 4vw, 3rem);
+  max-width: 1320px;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
   }
   body {
     @apply bg-background text-foreground antialiased;

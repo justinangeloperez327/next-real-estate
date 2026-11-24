@@ -1,18 +1,13 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { HouseIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/features/auth/actions";
 import { getSession, isAdmin } from "@/features/auth/session";
-import { cn } from "@/lib/utils";
 import { MobileNav } from "./mobile-nav";
-import { NAV_LINKS } from "./nav-links";
-import { NavbarShell } from "./navbar-shell";
+import { SiteNavLinks } from "./site-nav-links";
 
-const linkClass =
-  "inline-flex h-11 items-center rounded-md px-3 text-sm font-medium opacity-90 transition-opacity hover:opacity-100 hover:underline underline-offset-4 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current";
-
-export default function Navbar({ overlay = false }: { overlay?: boolean }) {
-  // Only the auth links depend on the visitor; they stream in without
-  // blocking the static navbar.
+export default function Navbar() {
   const auth = (
     <Suspense fallback={<GuestLinks />}>
       <AuthLinks />
@@ -20,45 +15,44 @@ export default function Navbar({ overlay = false }: { overlay?: boolean }) {
   );
 
   return (
-    <NavbarShell overlay={overlay}>
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 z-50 border-b bg-background">
+      <div className="container flex h-[4.5rem] items-center justify-between gap-6">
         <Link
           href="/"
-          className="inline-flex h-11 items-center text-base font-semibold tracking-wide"
+          className="inline-flex min-h-11 shrink-0 items-center gap-2.5 rounded-md"
+          aria-label="Justin Real Estate, home"
         >
-          JUSTIN
-          <span className="sr-only"> Real Estate, home</span>
+          <span className="grid size-9 place-items-center rounded-md bg-primary text-primary-foreground">
+            <HouseIcon aria-hidden className="size-5" />
+          </span>
+          <span className="leading-tight">
+            <span className="block text-base font-semibold tracking-tight">
+              Justin
+            </span>
+            <span className="block text-xs text-muted-foreground">
+              Real Estate
+            </span>
+          </span>
         </Link>
         <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className={linkClass}>
-              {link.label}
-            </Link>
-          ))}
-          <span aria-hidden className="mx-2 h-5 w-px bg-current opacity-20" />
-          {auth}
+          <SiteNavLinks />
         </nav>
+        <div className="hidden items-center gap-2 md:flex">{auth}</div>
         <MobileNav auth={auth} />
       </div>
-    </NavbarShell>
+    </header>
   );
 }
 
 function GuestLinks() {
   return (
     <>
-      <Link href="/sign-in" className={linkClass}>
-        Sign in
-      </Link>
-      <Link
-        href="/sign-up"
-        className={cn(
-          linkClass,
-          "bg-primary text-primary-foreground opacity-100 hover:bg-primary-hover hover:no-underline",
-        )}
-      >
-        Create account
-      </Link>
+      <Button asChild variant="ghost">
+        <Link href="/sign-in">Sign in</Link>
+      </Button>
+      <Button asChild variant="outline">
+        <Link href="/sign-up">Create account</Link>
+      </Button>
     </>
   );
 }
@@ -70,14 +64,14 @@ async function AuthLinks() {
   return (
     <>
       {isAdmin(session) && (
-        <Link href="/dashboard" className={linkClass}>
-          Dashboard
-        </Link>
+        <Button asChild variant="ghost">
+          <Link href="/dashboard">Dashboard</Link>
+        </Button>
       )}
       <form action={signOutAction}>
-        <button type="submit" className={linkClass}>
+        <Button type="submit" variant="ghost" className="w-full">
           Sign out
-        </button>
+        </Button>
       </form>
     </>
   );

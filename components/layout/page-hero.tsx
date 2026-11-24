@@ -1,36 +1,37 @@
 import Image from "next/image";
 
-/** Photo banner with a darkened overlay (keeps white text at AA). */
 export function PageHero({
   image,
   title,
   subtitle,
-  children,
 }: {
   image: string;
   title: string;
   subtitle?: string;
-  children?: React.ReactNode;
 }) {
   return (
-    <section className="relative isolate flex min-h-80 items-center justify-center px-4 py-16">
-      <Image
-        src={image}
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="-z-10 object-cover"
-      />
-      <div aria-hidden className="absolute inset-0 -z-10 bg-slate-950/65" />
-      <div className="w-full max-w-5xl text-center text-white">
-        <h1 className="text-3xl font-semibold sm:text-4xl">{title}</h1>
-        {subtitle && (
-          <p className="mx-auto mt-3 max-w-xl text-lg text-white/90">
-            {subtitle}
-          </p>
-        )}
-        {children && <div className="mt-8">{children}</div>}
+    <section className="border-b bg-muted">
+      <div className="container grid items-center gap-6 py-8 sm:gap-10 sm:py-12 md:grid-cols-[1fr_1.1fr]">
+        <div>
+          <h1 className="font-display text-4xl font-normal sm:text-6xl">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="mt-4 max-w-md text-lg leading-relaxed text-muted-foreground">
+              {subtitle}
+            </p>
+          )}
+        </div>
+        <div className="relative aspect-[2/1] overflow-hidden rounded-xl bg-accent">
+          <Image
+            src={image}
+            alt=""
+            fill
+            preload
+            sizes="(min-width: 768px) 52vw, 100vw"
+            className="object-cover"
+          />
+        </div>
       </div>
     </section>
   );

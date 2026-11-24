@@ -38,20 +38,20 @@ export default function AboutPage() {
     <>
       <PageHero
         image="/images/about.jpg"
-        title="Making your move feel easier"
-        subtitle="Our passion is people and property."
+        title="About Justin Real Estate"
+        subtitle="Helping buyers, sellers, and renters through their next move."
       />
 
-      <section className="mx-auto w-full max-w-3xl px-4 py-16 sm:px-6">
-        <h2 className="text-2xl font-semibold">Our story</h2>
-        <div className="mt-4 space-y-4 text-lg leading-relaxed text-muted-foreground">
+      <section className="container grid gap-4 py-12 sm:py-16 md:grid-cols-[1fr_2fr]">
+        <h2 className="font-display text-3xl font-normal">Our story</h2>
+        <div className="max-w-prose space-y-4 text-lg leading-relaxed text-muted-foreground">
           {STORY.map((p) => (
             <p key={p}>{p}</p>
           ))}
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-6xl space-y-6 px-4 pb-20 sm:px-6">
+      <section className="container space-y-6 pb-16">
         {SECTIONS.map((section, i) => (
           <div
             key={section.title}
@@ -63,14 +63,16 @@ export default function AboutPage() {
                 i % 2 === 1 && "md:order-2",
               )}
             >
-              <h3 className="text-xl font-semibold">{section.title}</h3>
+              <h2 className="font-display text-3xl font-normal">
+                {section.title}
+              </h2>
               {section.body.map((p) => (
                 <p key={p} className="text-muted-foreground">
                   {p}
                 </p>
               ))}
             </div>
-            <div className="relative h-80 md:h-96">
+            <div className="relative aspect-[3/2] md:aspect-auto md:min-h-80">
               <Image
                 src={section.image}
                 alt=""

@@ -1,18 +1,16 @@
 "use client";
 
 import Form from "next/form";
+import { useFormStatus } from "react-dom";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { SearchIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  SearchIcon,
+  SlidersHorizontalIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   CATEGORY_OPTIONS,
   DEFAULT_LOCATION,
@@ -21,8 +19,7 @@ import {
   RENT_PRICE_OPTIONS,
   ROOM_OPTIONS,
 } from "@/features/properties/constants";
-
-const fieldClass = "w-full bg-background text-foreground";
+import { cn } from "@/lib/utils";
 
 type Option = { text: string; value: string };
 
@@ -31,64 +28,111 @@ function FilterSelect({
   label,
   options,
   defaultValue,
-  placeholder = "Any",
-  onValueChange,
+  placeholder,
+  onChange,
 }: {
   name: string;
   label: string;
   options: Option[];
   defaultValue?: string;
   placeholder?: string;
-  onValueChange?: (value: string) => void;
+  onChange?: (value: string) => void;
 }) {
   return (
-    <div>
-      <label
-        id={`${name}-label`}
-        className="mb-1.5 block text-sm font-medium text-muted-foreground"
-      >
-        {label}
-      </label>
-      <Select
-        name={name}
-        defaultValue={defaultValue}
-        onValueChange={onValueChange}
-      >
-        <SelectTrigger aria-labelledby={`${name}-label`} className={fieldClass}>
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>
+    <label className="block min-w-0 text-sm font-medium">
+      <span className="mb-1.5 block">{label}</span>
+      <span className="relative block">
+        <select
+          name={name}
+          defaultValue={defaultValue}
+          onChange={
+            onChange ? (event) => onChange(event.target.value) : undefined
+          }
+          className="h-11 w-full appearance-none rounded-md border border-input bg-card ps-3 pe-8 text-foreground focus-visible:border-ring"
+        >
+          {placeholder && <option value="">{placeholder}</option>}
           {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <option
+              key={option.value}
+              value={option.value === "0" ? "" : option.value}
+            >
               {option.text}
-            </SelectItem>
+            </option>
           ))}
-        </SelectContent>
-      </Select>
-    </div>
+        </select>
+        <ChevronDownIcon
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
+        />
+      </span>
+    </label>
   );
 }
 
-/**
- * A plain GET form: next/form turns submission into a client-side navigation
- * to /properties?…, so no form library ships to the browser. Filters are
- * validated and mapped to RealtyAPI on the server (features/properties/filters.ts).
- */
-export default function PropertySearch() {
+const filterNames = ["type", "beds", "baths", "minPrice", "maxPrice"];
+
+export default function PropertySearch({
+  compact = false,
+}: {
+  compact?: boolean;
+}) {
   const params = useSearchParams();
+  const filterKey = JSON.stringify(
+    ["location", "category", ...filterNames].map((name) => params.get(name)),
+  );
+  return <SearchForm key={filterKey} params={params} compact={compact} />;
+}
+
+function SearchButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="gap-2 px-5">
+      <SearchIcon aria-hidden className="size-4" />
+      {pending ? "Searching…" : "Search homes"}
+    </Button>
+  );
+}
+
+function SearchForm({
+  params,
+  compact,
+}: {
+  params: URLSearchParams;
+  compact: boolean;
+}) {
   const get = (name: string) => params.get(name) ?? undefined;
-  const [category, setCategory] = useState(get("category") ?? "sale");
+  const initialCategory = get("category") === "rent" ? "rent" : "sale";
+  const [category, setCategory] = useState<string>(initialCategory);
   const priceOptions = category === "rent" ? RENT_PRICE_OPTIONS : PRICE_OPTIONS;
+  const sort = get("sort");
 
   return (
     <Form
       action="/properties"
       role="search"
       aria-label="Search homes"
-      className="rounded-xl border bg-card p-4 text-left text-card-foreground shadow-lg sm:p-5"
+      className={cn(
+        "rounded-xl border bg-card p-4 text-card-foreground sm:p-5",
+        compact && "shadow-sm",
+      )}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="flex-1">
+      {sort && <input type="hidden" name="sort" value={sort} />}
+      <div
+        className={cn(
+          "grid grid-cols-[5.75rem_minmax(0,1fr)] items-end gap-3",
+          compact
+            ? "sm:grid-cols-[5.75rem_minmax(0,1fr)_auto] lg:grid-cols-[5.75rem_minmax(0,1fr)]"
+            : "sm:grid-cols-[8rem_minmax(0,1fr)_auto]",
+        )}
+      >
+        <FilterSelect
+          name="category"
+          label="I want to"
+          options={CATEGORY_OPTIONS}
+          defaultValue={initialCategory}
+          onChange={setCategory}
+        />
+        <div className="min-w-0">
           <label
             htmlFor="location"
             className="mb-1.5 block text-sm font-medium"
@@ -100,59 +144,80 @@ export default function PropertySearch() {
             name="location"
             type="search"
             autoComplete="address-level2"
-            placeholder={`City, ZIP or neighborhood, e.g. ${DEFAULT_LOCATION}`}
-            defaultValue={get("location") ?? ""}
-            className={fieldClass}
+            placeholder={DEFAULT_LOCATION}
+            defaultValue={get("location")}
+            className="bg-card text-base sm:text-sm"
           />
         </div>
-        <Button type="submit" className="sm:w-36">
-          <SearchIcon aria-hidden className="mr-2 size-4" />
-          Search
-        </Button>
+        <div
+          className={cn(
+            "col-span-2 grid",
+            compact ? "sm:col-span-1 lg:col-span-2" : "sm:col-span-1",
+          )}
+        >
+          <SearchButton />
+        </div>
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <FilterSelect
-          name="category"
-          label="Buy or rent"
-          options={CATEGORY_OPTIONS}
-          defaultValue={category}
-          onValueChange={setCategory}
-        />
-        <FilterSelect
-          name="type"
-          label="Type"
-          options={PROPERTY_TYPE_OPTIONS}
-          defaultValue={get("type")}
-          placeholder="Any type"
-        />
-        <FilterSelect
-          name="beds"
-          label="Beds"
-          options={ROOM_OPTIONS}
-          defaultValue={get("beds")}
-        />
-        <FilterSelect
-          name="baths"
-          label="Baths"
-          options={ROOM_OPTIONS}
-          defaultValue={get("baths")}
-        />
-        {/* Price lists differ for buying and renting; remount on switch. */}
-        <FilterSelect
-          key={`min-${category}`}
-          name="minPrice"
-          label="Min price"
-          options={priceOptions}
-          defaultValue={get("minPrice")}
-        />
-        <FilterSelect
-          key={`max-${category}`}
-          name="maxPrice"
-          label="Max price"
-          options={priceOptions}
-          defaultValue={get("maxPrice")}
-        />
-      </div>
+      <details
+        className="group mt-3 border-t pt-1"
+        open={
+          filterNames.some((name) => Boolean(get(name) && get(name) !== "0")) ||
+          undefined
+        }
+      >
+        <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-md text-sm font-medium text-primary hover:underline [&::-webkit-details-marker]:hidden">
+          <SlidersHorizontalIcon aria-hidden className="size-4" />
+          Filters
+          <ChevronDownIcon
+            aria-hidden
+            className="size-4 group-open:rotate-180"
+          />
+        </summary>
+        <div
+          className={cn(
+            "grid grid-cols-2 gap-3 pb-2 sm:grid-cols-3",
+            !compact && "lg:grid-cols-5",
+          )}
+        >
+          <FilterSelect
+            name="type"
+            label="Property type"
+            options={PROPERTY_TYPE_OPTIONS}
+            defaultValue={get("type")}
+            placeholder="Any type"
+          />
+          <FilterSelect
+            name="beds"
+            label="Beds"
+            options={ROOM_OPTIONS}
+            defaultValue={get("beds")}
+          />
+          <FilterSelect
+            name="baths"
+            label="Baths"
+            options={ROOM_OPTIONS}
+            defaultValue={get("baths")}
+          />
+          <FilterSelect
+            key={`min-${category}`}
+            name="minPrice"
+            label="Min price"
+            options={priceOptions}
+            defaultValue={
+              category === initialCategory ? get("minPrice") : undefined
+            }
+          />
+          <FilterSelect
+            key={`max-${category}`}
+            name="maxPrice"
+            label="Max price"
+            options={priceOptions}
+            defaultValue={
+              category === initialCategory ? get("maxPrice") : undefined
+            }
+          />
+        </div>
+      </details>
     </Form>
   );
 }

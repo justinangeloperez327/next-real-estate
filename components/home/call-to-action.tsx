@@ -1,19 +1,25 @@
 import Link from "next/link";
+import { ArrowUpRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function CallToAction() {
   return (
-    <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
-      <div className="flex flex-col items-start gap-6 rounded-xl border p-8 sm:flex-row sm:items-center sm:justify-between sm:p-10">
+    <section className="border-t bg-accent">
+      <div className="container flex flex-col items-start gap-6 py-10 sm:flex-row sm:items-center sm:justify-between sm:py-14">
         <div>
-          <h2 className="text-2xl font-semibold">Not sure where to start?</h2>
-          <p className="mt-2 max-w-lg text-muted-foreground">
-            Tell us what you&apos;re looking for and one of our team will get
-            back to you, usually within a day.
+          <h2 className="font-display text-3xl font-normal sm:text-4xl">
+            Need help with your search?
+          </h2>
+          <p className="mt-3 max-w-lg text-muted-foreground">
+            Tell us what you&apos;re looking for or ask about a specific
+            listing.
           </p>
         </div>
-        <Button asChild size="lg">
-          <Link href="/contact">Talk to our team</Link>
+        <Button asChild size="lg" className="gap-2">
+          <Link href="/contact">
+            Talk to our team
+            <ArrowUpRightIcon aria-hidden className="size-4" />
+          </Link>
         </Button>
       </div>
     </section>
