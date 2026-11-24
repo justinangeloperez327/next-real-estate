@@ -8,18 +8,18 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import type { Property } from "@/features/properties/types";
+import type { Listing } from "@/features/properties/types";
 
-export function PropertyCarousel({ properties }: { properties: Property[] }) {
+export function PropertyCarousel({ listings }: { listings: Listing[] }) {
   return (
     <Carousel opts={{ align: "start" }} aria-label="Featured homes">
       <CarouselContent className="-ml-6">
-        {properties.map((property) => (
+        {listings.map((listing) => (
           <CarouselItem
-            key={property.id}
+            key={listing.id}
             className="pl-6 sm:basis-1/2 lg:basis-1/3"
           >
-            <PropertyCard property={property} />
+            <PropertyCard listing={listing} />
           </CarouselItem>
         ))}
       </CarouselContent>

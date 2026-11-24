@@ -1,4 +1,24 @@
-export const propertyFeatures = [
+/** Default market shown when no location is searched. */
+export const DEFAULT_LOCATION =
+  process.env.NEXT_PUBLIC_DEFAULT_LOCATION || "Austin, TX";
+
+export const PAGE_SIZE = 24;
+
+export const CATEGORY_OPTIONS = [
+  { text: "Buy", value: "sale" },
+  { text: "Rent", value: "rent" },
+];
+
+/** Realtor.com property types accepted by RealtyAPI. */
+export const PROPERTY_TYPE_OPTIONS = [
+  { text: "House", value: "House" },
+  { text: "Condo", value: "Condo" },
+  { text: "Townhome", value: "Townhome" },
+  { text: "Multi-family", value: "Multi_Family" },
+  { text: "Land", value: "Land" },
+];
+
+export const ROOM_OPTIONS = [
   { text: "Any", value: "0" },
   { text: "1+", value: "1" },
   { text: "2+", value: "2" },
@@ -7,28 +27,25 @@ export const propertyFeatures = [
   { text: "5+", value: "5" },
 ];
 
-export const priceRange = [
+export const PRICE_OPTIONS = [
   { text: "Any", value: "0" },
-  { text: "$50,000", value: "50000" },
-  { text: "$100,000", value: "100000" },
-  { text: "$150,000", value: "150000" },
-  { text: "$200,000", value: "200000" },
-  { text: "$250,000", value: "250000" },
-  { text: "$300,000", value: "300000" },
-  { text: "$350,000", value: "350000" },
-  { text: "$400,000", value: "400000" },
-  { text: "$450,000", value: "450000" },
-  { text: "$500,000", value: "500000" },
-  { text: "$550,000", value: "550000" },
-  { text: "$600,000", value: "600000" },
-  { text: "$650,000", value: "650000" },
-  { text: "$700,000", value: "700000" },
-  { text: "$750,000", value: "750000" },
-  { text: "$800,000", value: "800000" },
-  { text: "$850,000", value: "850000" },
-  { text: "$900,000", value: "900000" },
-  { text: "$950,000", value: "950000" },
-  { text: "$1,000,000", value: "1000000" },
+  ...[
+    100_000, 200_000, 300_000, 400_000, 500_000, 750_000, 1_000_000, 1_500_000,
+    2_000_000, 3_000_000,
+  ].map((v) => ({ text: `$${v.toLocaleString("en-US")}`, value: String(v) })),
 ];
 
-export const propertyTypes = ["House", "Apartment"];
+export const RENT_PRICE_OPTIONS = [
+  { text: "Any", value: "0" },
+  ...[1_000, 1_500, 2_000, 2_500, 3_000, 4_000, 5_000, 7_500, 10_000].map(
+    (v) => ({ text: `$${v.toLocaleString("en-US")}/mo`, value: String(v) }),
+  ),
+];
+
+export const SORT_OPTIONS = [
+  { text: "Recommended", value: "Recommended" },
+  { text: "Newest", value: "Newest" },
+  { text: "Price: low to high", value: "Price_Low_to_High" },
+  { text: "Price: high to low", value: "Price_High_to_Low" },
+  { text: "Largest", value: "Square_Feet" },
+];

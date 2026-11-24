@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
+    // Listing and agent photos from Realtor.com (via RealtyAPI).
+    remotePatterns: [{ protocol: "https", hostname: "*.rdcpix.com" }],
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

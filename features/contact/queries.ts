@@ -25,3 +25,15 @@ export async function getContactMessages(
   if (error) throw new Error(`Failed to load messages: ${error.message}`);
   return (data ?? []) as ContactMessage[];
 }
+
+/** Counts for the dashboard, computed at request time. */
+export async function getContactMessageStats() {
+  const messages = await getContactMessages(100);
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  return {
+    messages,
+    thisWeek: messages.filter(
+      (m) => new Date(m.created_at).getTime() >= weekAgo,
+    ).length,
+  };
+}

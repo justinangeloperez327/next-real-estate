@@ -1,94 +1,76 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
-import { createPublicClient } from "@/lib/supabase/public";
-import { propertyIdSchema } from "@/features/properties/schema";
-import type { Property, PropertyFilters } from "@/features/properties/types";
+import { realtyGet, RealtyApiError } from "@/lib/realtyapi/client";
+import type {
+  RawDetailResponse,
+  RawSearchResponse,
+} from "@/lib/realtyapi/types";
+import { DEFAULT_LOCATION, PAGE_SIZE } from "@/features/properties/constants";
+import { toSearchQuery } from "@/features/properties/filters";
+import {
+  normalizeDetail,
+  normalizeSearchResult,
+} from "@/features/properties/normalize";
+import type {
+  ListingDetail,
+  PropertyFilters,
+  SearchResult,
+} from "@/features/properties/types";
 
-/** Cache tags. Mutations call updateTag() with these (see actions.ts). */
-export const tags = {
-  all: "properties",
-  one: (id: number) => `property:${id}`,
-};
+/**
+ * RealtyAPI bills per request (the free plan is 250/month), so every read
+ * is cached across visitors. Identical searches within the cache lifetime
+ * cost nothing.
+ */
 
-function toInt(value: string | undefined): number | undefined {
-  if (!value) return undefined;
-  const n = Number.parseInt(value, 10);
-  return Number.isFinite(n) && n > 0 ? n : undefined;
-}
-
-/** Escape characters that have meaning inside a PostgREST ilike pattern. */
-function escapeLike(value: string): string {
-  return value.replace(/[\\%_,()]/g, (c) => `\\${c}`);
-}
-
-// Listings are public data, so they're read with a cookie-free client and
-// cached across requests and users. Results are keyed by the arguments.
-
-export async function getProperties(
+export async function searchListings(
   filters: PropertyFilters = {},
-): Promise<Property[]> {
+): Promise<SearchResult> {
   "use cache";
-  cacheTag(tags.all);
+  cacheTag("listings");
   cacheLife("hours");
 
-  let query = createPublicClient()
-    .from("properties")
-    .select("*")
-    .order("id", { ascending: true });
+  const query = toSearchQuery(filters, {
+    location: DEFAULT_LOCATION,
+    pageSize: PAGE_SIZE,
+  });
+  const data = await realtyGet<RawSearchResponse>("/search/bylocation", query);
+  const listings = (data.searchResults ?? [])
+    .filter((r) => r?.property_id)
+    .map(normalizeSearchResult);
 
-  const search = filters.search?.trim();
-  if (search) query = query.ilike("address", `%${escapeLike(search)}%`);
-  if (filters.property_type) {
-    query = query.eq("property_type", filters.property_type.toLowerCase());
+  return {
+    listings,
+    total: data.total ?? listings.length,
+    page: query.page,
+    hasNextPage: !!data.nextPage,
+  };
+}
+
+/** Newest listings in the default market (shares the search cache). */
+export async function getLatestListings(limit = 6) {
+  const { listings } = await searchListings({ sort: "Newest" });
+  return listings.slice(0, limit);
+}
+
+/** Returns the listing, or null if the id is malformed or not found. */
+export async function getListing(id: unknown): Promise<ListingDetail | null> {
+  if (typeof id !== "string" || !/^\d{4,20}$/.test(id)) return null;
+  return getListingById(id);
+}
+
+async function getListingById(id: string): Promise<ListingDetail | null> {
+  "use cache";
+  cacheTag("listings", `listing:${id}`);
+  cacheLife("hours");
+
+  try {
+    const data = await realtyGet<RawDetailResponse>("/details/byid", {
+      property_id: id,
+    });
+    return data.detail?.property_id ? normalizeDetail(data.detail) : null;
+  } catch (error) {
+    if (error instanceof RealtyApiError && error.status === 404) return null;
+    throw error;
   }
-
-  const beds = toInt(filters.beds);
-  const baths = toInt(filters.baths);
-  const carpark = toInt(filters.carpark);
-  const minPrice = toInt(filters.minPrice);
-  const maxPrice = toInt(filters.maxPrice);
-  if (beds) query = query.gte("beds", beds);
-  if (baths) query = query.gte("baths", baths);
-  if (carpark) query = query.gte("carpark", carpark);
-  if (minPrice) query = query.gte("price", minPrice);
-  if (maxPrice) query = query.lte("price", maxPrice);
-
-  const { data, error } = await query;
-  if (error) throw new Error(`Failed to load properties: ${error.message}`);
-  return (data ?? []) as Property[];
-}
-
-export async function getLatestProperties(limit = 5): Promise<Property[]> {
-  "use cache";
-  cacheTag(tags.all);
-  cacheLife("hours");
-
-  const { data, error } = await createPublicClient()
-    .from("properties")
-    .select("*")
-    .order("id", { ascending: false })
-    .limit(limit);
-  if (error) throw new Error(`Failed to load properties: ${error.message}`);
-  return (data ?? []) as Property[];
-}
-
-/** Returns the property, or `null` if the id is invalid or not found. */
-export async function getProperty(id: unknown): Promise<Property | null> {
-  const parsed = propertyIdSchema.safeParse(id);
-  if (!parsed.success) return null;
-  return getPropertyById(parsed.data);
-}
-
-async function getPropertyById(id: number): Promise<Property | null> {
-  "use cache";
-  cacheTag(tags.all, tags.one(id));
-  cacheLife("hours");
-
-  const { data, error } = await createPublicClient()
-    .from("properties")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
-  if (error) throw new Error(`Failed to load property: ${error.message}`);
-  return data as Property | null;
 }

@@ -5,17 +5,18 @@ import { unstable_rethrow } from "next/navigation";
 import { ArrowRightIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PropertyCarousel } from "@/features/properties/components/property-carousel";
-import { getLatestProperties } from "@/features/properties/queries";
-import type { Property } from "@/features/properties/types";
+import { DEFAULT_LOCATION } from "@/features/properties/constants";
+import { getLatestListings } from "@/features/properties/queries";
+import type { Listing } from "@/features/properties/types";
 
 export default function Featured() {
   return (
     <section className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
       <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-3xl font-semibold">Homes we love</h2>
+          <h2 className="text-3xl font-semibold">New on the market</h2>
           <p className="mt-2 text-muted-foreground">
-            A few of our favourite listings right now.
+            The latest homes for sale in {DEFAULT_LOCATION}.
           </p>
         </div>
         <Link
@@ -37,17 +38,17 @@ async function FeaturedListings() {
   // build time, so deploys never depend on the database being reachable.
   await connection();
 
-  let properties: Property[] = [];
+  let listings: Listing[] = [];
   try {
-    properties = await getLatestProperties(6);
+    listings = await getLatestListings(6);
   } catch (error) {
     unstable_rethrow(error);
     // The strip is decorative: if it fails, the rest of the page still works.
     console.error("Featured properties failed to load:", error);
   }
-  if (properties.length === 0) return null;
+  if (listings.length === 0) return null;
 
-  return <PropertyCarousel properties={properties} />;
+  return <PropertyCarousel listings={listings} />;
 }
 
 function FeaturedSkeleton() {

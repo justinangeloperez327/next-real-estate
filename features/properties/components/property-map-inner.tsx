@@ -6,20 +6,24 @@ import Map, {
   ScaleControl,
 } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
-import type { Property } from "@/features/properties/types";
-
-type Point = Pick<Property, "id" | "latitude" | "longitude" | "address">;
+/** A map pin. Listings without coordinates are filtered out by the caller. */
+export type MapPoint = {
+  id: string;
+  latitude: number;
+  longitude: number;
+  label: string;
+};
 
 export type PropertyMapProps = {
-  points: Point[];
+  points: MapPoint[];
   /** Initial centre; defaults to the first point. */
   center?: { latitude: number; longitude: number };
   zoom?: number;
   height?: number;
 };
 
-// Fallback centre (Abu Dhabi) when there are no points to show.
-const DEFAULT_CENTER = { latitude: 24.495139, longitude: 54.369796 };
+// Fallback centre (Austin, TX) when there are no points to show.
+const DEFAULT_CENTER = { latitude: 30.2672, longitude: -97.7431 };
 
 export default function PropertyMapInner({
   points,
@@ -64,7 +68,7 @@ export default function PropertyMapInner({
           {/* Marker icon: https://www.flaticon.com/free-icons/map-marker
               Mapbox markers are plain DOM nodes; next/image adds nothing. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/marker.png" alt={point.address} className="h-10" />
+          <img src="/marker.png" alt={point.label} className="h-10" />
         </Marker>
       ))}
     </Map>

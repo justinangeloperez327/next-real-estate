@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ChevronLeftIcon, MailIcon, PhoneIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { PropertyDetailSkeleton } from "@/features/properties/components/property-skeletons";
-import { PropertyFeatures } from "@/features/properties/components/property-features";
-import { PropertyMap } from "@/features/properties/components/property-map";
+import {
+  ChevronLeftIcon,
+  ExternalLinkIcon,
+  HomeIcon,
+  MailIcon,
+  PhoneIcon,
+} from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Button } from "@/components/ui/button";
 import {
   Carousel,
   CarouselContent,
@@ -16,38 +19,36 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { formatPrice } from "@/lib/format";
-import { getProperty } from "@/features/properties/queries";
+import { PropertyFeatures } from "@/features/properties/components/property-features";
+import { PropertyMap } from "@/features/properties/components/property-map";
+import { PropertyDetailSkeleton } from "@/features/properties/components/property-skeletons";
+import { toMapPoints } from "@/features/properties/map-points";
+import { getListing } from "@/features/properties/queries";
+import type { ListingDetail } from "@/features/properties/types";
+import {
+  formatDate,
+  formatListingPrice,
+  formatNumber,
+  formatPrice,
+} from "@/lib/format";
 
-// Placeholder gallery until property images are stored per listing.
-const GALLERY = [
-  { src: "/images/properties/1.jpeg", alt: "Exterior" },
-  { src: "/images/properties/bedroom.jpg", alt: "Bedroom" },
-  { src: "/images/properties/bathroom.jpg", alt: "Bathroom" },
-  { src: "/images/properties/kitchen.jpg", alt: "Kitchen" },
-  { src: "/images/properties/floorplan.avif", alt: "Floor plan" },
-];
-
-// Placeholder agent details until agents are stored in the database.
-const AGENTS = [
-  {
-    name: "John Doe",
-    email: "johndoe@example.com",
-    phone: "123-456-789",
-    photo: "/images/agents/agent.webp",
-  },
-];
+const MAX_PHOTOS = 24;
+const CATEGORY_LABEL = { sale: "For sale", rent: "For rent", sold: "Sold" };
 
 export async function generateMetadata({
   params,
 }: PageProps<"/properties/[id]">): Promise<Metadata> {
   const { id } = await params;
-  const property = await getProperty(id);
-  return property
-    ? { title: property.title, description: property.description.slice(0, 160) }
-    : { title: "Property not found" };
+  const listing = await getListing(id);
+  if (!listing) return { title: "Home not found" };
+  return {
+    title: listing.address.full,
+    description: listing.description?.slice(0, 160),
+    openGraph: listing.photos[0] ? { images: [listing.photos[0]] } : undefined,
+  };
 }
 
+// Page pattern: Detail (media, summary, facts, sections, sticky contact).
 export default function PropertyPage({
   params,
 }: PageProps<"/properties/[id]">) {
@@ -62,23 +63,31 @@ async function PropertyDetail({
   params,
 }: Pick<PageProps<"/properties/[id]">, "params">) {
   const { id } = await params;
-  const property = await getProperty(id);
-  if (!property) notFound();
+  const listing = await getListing(id);
+  if (!listing) notFound();
 
-  const forRent = property.category === "rent";
-  const facts: [string, React.ReactNode][] = [
+  const rent = listing.category === "rent";
+  const facts: [string, string | null][] = [
+    ["Type", listing.propertyType],
+    ["Year built", listing.yearBuilt ? String(listing.yearBuilt) : null],
     [
-      "Type",
-      <span key="t" className="capitalize">
-        {property.property_type}
-      </span>,
+      "Lot size",
+      listing.lotSqft ? `${formatNumber(listing.lotSqft)} sq ft` : null,
     ],
-    ["Listing", forRent ? "For rent" : "For sale"],
-    ["Bedrooms", property.beds],
-    ["Bathrooms", property.baths],
-    ["Car parks", property.carpark],
-    ["Pool", property.pool ? "Yes" : "No"],
+    [
+      "Price per sq ft",
+      listing.pricePerSqft ? formatPrice(listing.pricePerSqft) : null,
+    ],
+    ["HOA fee", listing.hoaFee ? `${formatPrice(listing.hoaFee)}/month` : null],
+    ["Garage", listing.garage ? `${listing.garage} spaces` : null],
+    ["Stories", listing.stories ? String(listing.stories) : null],
+    [
+      "Days on market",
+      listing.daysOnMarket !== null ? String(listing.daysOnMarket) : null,
+    ],
+    ["Neighborhood", listing.neighborhood],
   ];
+  const shownFacts = facts.filter((f): f is [string, string] => !!f[1]);
 
   return (
     <article className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
@@ -90,118 +99,308 @@ async function PropertyDetail({
         All homes
       </Link>
 
-      <Carousel className="mt-2" aria-label="Photos">
-        <CarouselContent>
-          {GALLERY.map((image, i) => (
-            <CarouselItem key={image.src}>
-              <AspectRatio
-                ratio={16 / 9}
-                className="overflow-hidden rounded-xl bg-muted"
-              >
-                <Image
-                  src={image.src}
-                  alt={`${property.title}: ${image.alt}`}
-                  fill
-                  priority={i === 0}
-                  sizes="(min-width: 1152px) 1152px, 100vw"
-                  className="object-cover"
-                />
-              </AspectRatio>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className="left-3 size-11 border-0 bg-background/90 shadow-sm" />
-        <CarouselNext className="right-3 size-11 border-0 bg-background/90 shadow-sm" />
-      </Carousel>
+      <Gallery listing={listing} />
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_340px]">
         <div className="min-w-0">
           <header className="border-b pb-6">
             <p className="text-sm text-muted-foreground">
-              {forRent ? "For rent" : "For sale"}
+              {CATEGORY_LABEL[listing.category]}
+              {listing.isPending && " · Pending"}
             </p>
-            <h1 className="mt-1 text-3xl font-semibold">{property.title}</h1>
-            <p className="mt-2 text-muted-foreground">{property.address}</p>
+            <h1 className="mt-1 text-3xl font-semibold">
+              {listing.address.line}
+            </h1>
+            <p className="mt-1 text-muted-foreground">
+              {[
+                listing.address.city,
+                [listing.address.state, listing.address.postalCode]
+                  .filter(Boolean)
+                  .join(" "),
+              ]
+                .filter(Boolean)
+                .join(", ")}
+            </p>
             <p className="mt-4 text-3xl font-semibold tabular-nums">
-              {formatPrice(property.price)}
-              {forRent && (
+              {formatListingPrice(listing.price, listing.priceMax)}
+              {rent && listing.price !== null && (
                 <span className="text-lg font-normal text-muted-foreground">
                   {" "}
                   / month
                 </span>
               )}
             </p>
-            <PropertyFeatures property={property} className="mt-4" />
+            <PropertyFeatures listing={listing} className="mt-4" />
           </header>
 
-          <section className="border-b py-8">
-            <h2 className="text-xl font-semibold">About this home</h2>
-            <p className="mt-4 max-w-prose whitespace-pre-line leading-relaxed">
-              {property.description}
-            </p>
-          </section>
+          {listing.description && (
+            <section className="border-b py-8">
+              <h2 className="text-xl font-semibold">About this home</h2>
+              <p className="mt-4 max-w-prose whitespace-pre-line leading-relaxed">
+                {listing.description}
+              </p>
+            </section>
+          )}
 
-          <section className="border-b py-8">
-            <h2 className="text-xl font-semibold">Key facts</h2>
-            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
-              {facts.map(([label, value]) => (
-                <div key={label}>
-                  <dt className="text-sm text-muted-foreground">{label}</dt>
-                  <dd className="mt-0.5 font-medium tabular-nums">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
+          {shownFacts.length > 0 && (
+            <section className="border-b py-8">
+              <h2 className="text-xl font-semibold">Key facts</h2>
+              <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                {shownFacts.map(([label, value]) => (
+                  <div key={label}>
+                    <dt className="text-sm text-muted-foreground">{label}</dt>
+                    <dd className="mt-0.5 font-medium tabular-nums">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
 
-          <section className="py-8">
-            <h2 className="text-xl font-semibold">Location</h2>
-            <div className="mt-4">
-              <PropertyMap points={[property]} zoom={15} height={400} />
-            </div>
-          </section>
+          {listing.features.length > 0 && (
+            <section className="border-b py-8">
+              <h2 className="text-xl font-semibold">Features</h2>
+              <div className="mt-4 grid gap-6 sm:grid-cols-2">
+                {listing.features.slice(0, 10).map((section) => (
+                  <div key={section.category}>
+                    <h3 className="font-medium">{section.category}</h3>
+                    <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                      {section.items.slice(0, 8).map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {listing.schools.length > 0 && (
+            <section className="border-b py-8">
+              <h2 className="text-xl font-semibold">Nearby schools</h2>
+              <ul className="mt-4 divide-y rounded-xl border">
+                {listing.schools.slice(0, 6).map((school) => (
+                  <li
+                    key={school.name}
+                    className="flex items-center justify-between gap-4 px-4 py-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{school.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {[
+                          school.grades,
+                          school.type &&
+                            school.type[0].toUpperCase() + school.type.slice(1),
+                          school.distanceMiles !== null &&
+                            `${school.distanceMiles} mi`,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    </div>
+                    {school.rating !== null && (
+                      <p className="shrink-0 text-sm tabular-nums">
+                        <span className="font-semibold">{school.rating}</span>
+                        <span className="text-muted-foreground">/10</span>
+                        <span className="sr-only"> rating</span>
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {listing.history.length > 0 && (
+            <section className="border-b py-8">
+              <h2 className="text-xl font-semibold">Listing history</h2>
+              <div className="mt-4 overflow-x-auto rounded-xl border">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted text-left text-muted-foreground">
+                    <tr>
+                      <th scope="col" className="px-4 py-2 font-medium">
+                        Date
+                      </th>
+                      <th scope="col" className="px-4 py-2 font-medium">
+                        Event
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-4 py-2 text-right font-medium"
+                      >
+                        Price
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {listing.history.slice(0, 10).map((h, i) => (
+                      <tr key={`${h.date}-${i}`}>
+                        <td className="px-4 py-2 whitespace-nowrap tabular-nums">
+                          {formatDate(h.date)}
+                        </td>
+                        <td className="px-4 py-2">{h.event}</td>
+                        <td className="px-4 py-2 text-right tabular-nums">
+                          {h.price ? formatPrice(h.price) : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {listing.latitude !== null && (
+            <section className="py-8">
+              <h2 className="text-xl font-semibold">Location</h2>
+              <div className="mt-4">
+                <PropertyMap
+                  points={toMapPoints([listing])}
+                  zoom={15}
+                  height={400}
+                />
+              </div>
+            </section>
+          )}
         </div>
 
-        <aside className="lg:sticky lg:top-24 lg:self-start">
-          {AGENTS.map((agent) => (
-            <div key={agent.email} className="rounded-xl border bg-card p-6">
-              <h2 className="text-sm font-medium text-muted-foreground">
-                Your agent
-              </h2>
-              <div className="mt-4 flex items-center gap-4">
-                <Image
-                  src={agent.photo}
-                  alt=""
-                  width={64}
-                  height={64}
-                  className="size-16 rounded-full object-cover"
-                />
-                <div className="min-w-0">
-                  <p className="font-semibold">{agent.name}</p>
-                  <p className="truncate text-sm text-muted-foreground">
-                    {agent.email}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-6 grid gap-2">
-                <Button asChild>
-                  <a
-                    href={`mailto:${agent.email}?subject=${encodeURIComponent(property.title)}`}
-                  >
-                    <MailIcon aria-hidden className="mr-2 size-4" />
-                    Email {agent.name.split(" ")[0]}
-                  </a>
-                </Button>
-                <Button asChild variant="outline">
-                  <a href={`tel:${agent.phone.replaceAll("-", "")}`}>
-                    <PhoneIcon aria-hidden className="mr-2 size-4" />
-                    Call {agent.phone}
-                  </a>
-                </Button>
-              </div>
-            </div>
-          ))}
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+          <ContactCard listing={listing} />
         </aside>
       </div>
     </article>
   );
+}
+
+function Gallery({ listing }: { listing: ListingDetail }) {
+  const photos = listing.photos.slice(0, MAX_PHOTOS);
+
+  if (photos.length === 0) {
+    return (
+      <div className="mt-2 flex aspect-[16/9] items-center justify-center rounded-xl bg-muted">
+        <HomeIcon aria-hidden className="size-12 text-muted-foreground" />
+        <span className="sr-only">No photos available</span>
+      </div>
+    );
+  }
+
+  return (
+    <Carousel className="mt-2" aria-label="Photos">
+      <CarouselContent>
+        {photos.map((src, i) => (
+          <CarouselItem key={src}>
+            <AspectRatio
+              ratio={16 / 9}
+              className="overflow-hidden rounded-xl bg-muted"
+            >
+              <Image
+                src={src}
+                alt={`${listing.address.line}, photo ${i + 1} of ${photos.length}`}
+                fill
+                priority={i === 0}
+                sizes="(min-width: 1152px) 1152px, 100vw"
+                className="object-cover"
+              />
+            </AspectRatio>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      {photos.length > 1 && (
+        <>
+          <CarouselPrevious className="left-3 border-0 bg-background/90 shadow-sm" />
+          <CarouselNext className="right-3 border-0 bg-background/90 shadow-sm" />
+        </>
+      )}
+    </Carousel>
+  );
+}
+
+function ContactCard({ listing }: { listing: ListingDetail }) {
+  const agent = listing.agent;
+
+  return (
+    <div className="rounded-xl border bg-card p-6">
+      <h2 className="text-sm font-medium text-muted-foreground">
+        {agent ? "Listed by" : "Interested in this home?"}
+      </h2>
+      {agent && (
+        <div className="mt-4 flex items-center gap-4">
+          {agent.photo ? (
+            <Image
+              src={agent.photo}
+              alt=""
+              width={64}
+              height={64}
+              className="size-16 rounded-full object-cover"
+            />
+          ) : (
+            <span
+              aria-hidden
+              className="flex size-16 items-center justify-center rounded-full bg-muted text-lg font-semibold"
+            >
+              {agent.name.charAt(0)}
+            </span>
+          )}
+          <div className="min-w-0">
+            <p className="font-semibold">{agent.name}</p>
+            {agent.office && (
+              <p className="truncate text-sm text-muted-foreground">
+                {agent.office}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+      <div className="mt-6 grid gap-2">
+        {agent?.phone && (
+          <Button asChild>
+            <a href={`tel:${agent.phone.replace(/[^\d+]/g, "")}`}>
+              <PhoneIcon aria-hidden className="mr-2 size-4" />
+              Call {formatPhone(agent.phone)}
+            </a>
+          </Button>
+        )}
+        {agent?.email && (
+          <Button asChild variant={agent.phone ? "outline" : "default"}>
+            <a
+              href={`mailto:${agent.email}?subject=${encodeURIComponent(listing.address.full)}`}
+            >
+              <MailIcon aria-hidden className="mr-2 size-4" />
+              Email {agent.name.split(" ")[0]}
+            </a>
+          </Button>
+        )}
+        {!agent?.phone && !agent?.email && (
+          <Button asChild>
+            <Link href="/contact">Ask our team about it</Link>
+          </Button>
+        )}
+        {listing.sourceUrl && (
+          <Button asChild variant="ghost">
+            <a
+              href={listing.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View on Realtor.com
+              <ExternalLinkIcon aria-hidden className="ml-2 size-4" />
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          </Button>
+        )}
+      </div>
+      {listing.listedAt && (
+        <p className="mt-4 text-xs text-muted-foreground">
+          Listed {formatDate(listing.listedAt)}. Data from Realtor.com via
+          RealtyAPI.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function formatPhone(raw: string): string {
+  const d = raw.replace(/\D/g, "");
+  return d.length === 10
+    ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`
+    : raw;
 }
