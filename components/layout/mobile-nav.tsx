@@ -48,8 +48,12 @@ export function MobileNav({ auth }: { auth: React.ReactNode }) {
           }}
         >
           <SiteNavLinks />
-          <div className="my-3 border-t" />
-          <div className="grid gap-2">{auth}</div>
+          {auth && (
+            <>
+              <div className="my-3 border-t" />
+              <div className="grid gap-2">{auth}</div>
+            </>
+          )}
         </nav>
       </SheetContent>
     </Sheet>

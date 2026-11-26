@@ -14,10 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # Placeholders: the build never contacts Supabase (data loads at
-      # request time), it only needs the variables to be defined.
-      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
       NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4

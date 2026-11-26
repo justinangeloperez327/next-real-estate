@@ -12,6 +12,11 @@ import {
   signUpSchema,
 } from "@/features/auth/schema";
 
+const AUTH_UNAVAILABLE = {
+  status: "error",
+  message: "Account access is currently unavailable.",
+} as const;
+
 const SENSITIVE = { sensitive: ["password", "confirmPassword"] };
 
 // Supabase error codes mapped to plain, non-blaming copy with a next step.
@@ -41,6 +46,8 @@ export async function signInAction(
   if (!form.ok) return form.state;
 
   const supabase = await createClient();
+  if (!supabase) return AUTH_UNAVAILABLE;
+
   const { data, error } = await supabase.auth.signInWithPassword(form.data);
 
   if (error) {
@@ -66,6 +73,8 @@ export async function signUpAction(
   if (!form.ok) return form.state;
 
   const supabase = await createClient();
+  if (!supabase) return AUTH_UNAVAILABLE;
+
   const { error } = await supabase.auth.signUp({
     ...form.data,
     options: { emailRedirectTo: `${await getOrigin()}/auth/callback` },
@@ -94,6 +103,8 @@ export async function forgotPasswordAction(
   if (!form.ok) return form.state;
 
   const supabase = await createClient();
+  if (!supabase) return AUTH_UNAVAILABLE;
+
   const { error } = await supabase.auth.resetPasswordForEmail(form.data.email, {
     redirectTo: `${await getOrigin()}/auth/callback?redirect_to=/reset-password`,
   });
@@ -117,6 +128,8 @@ export async function resetPasswordAction(
   if (!form.ok) return form.state;
 
   const supabase = await createClient();
+  if (!supabase) return AUTH_UNAVAILABLE;
+
   const { error } = await supabase.auth.updateUser({
     password: form.data.password,
   });
@@ -136,6 +149,6 @@ export async function resetPasswordAction(
 
 export async function signOutAction() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  await supabase?.auth.signOut();
   redirect("/sign-in");
 }

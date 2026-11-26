@@ -25,6 +25,17 @@ describe("updateSession route guards", () => {
     claims = null;
   });
 
+  it("keeps the admin dashboard protected when auth is unconfigured", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
+    claims = admin;
+    try {
+      expect(await visit("/dashboard")).toBe("/sign-in");
+      expect(await visit("/sign-in")).toBeNull();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("sends visitors from /dashboard to /sign-in", async () => {
     expect(await visit("/dashboard/properties")).toBe("/sign-in");
   });

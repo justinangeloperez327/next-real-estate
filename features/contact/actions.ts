@@ -1,6 +1,6 @@
 "use server";
 
-import { createPublicClient } from "@/lib/supabase/public";
+import { getDb } from "@/lib/prisma";
 import { validateForm, type FormState } from "@/lib/forms";
 import {
   contactSchema,
@@ -32,14 +32,16 @@ export async function sendContactMessage(
   }
 
   const { website: _honeypot, listingId, message, ...contact } = form.data;
-  const { error } = await createPublicClient()
-    .from("contact_messages")
-    .insert({
-      ...contact,
-      message: listingId ? listingMessagePrefix(listingId) + message : message,
+  try {
+    await getDb().contactMessage.create({
+      data: {
+        ...contact,
+        message: listingId
+          ? listingMessagePrefix(listingId) + message
+          : message,
+      },
     });
-
-  if (error) {
+  } catch (error) {
     console.error("sendContactMessage failed:", error);
     return {
       status: "error",

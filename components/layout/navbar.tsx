@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { HouseIcon } from "lucide-react";
+import { getAuthConfig } from "@/lib/env";
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/features/auth/actions";
 import { getSession, isAdmin } from "@/features/auth/session";
@@ -8,11 +9,11 @@ import { MobileNav } from "./mobile-nav";
 import { SiteNavLinks } from "./site-nav-links";
 
 export default function Navbar() {
-  const auth = (
+  const auth = getAuthConfig() ? (
     <Suspense fallback={<GuestLinks />}>
       <AuthLinks />
     </Suspense>
-  );
+  ) : null;
 
   return (
     <header className="public-nav sticky top-0 z-50 border-b border-brass/45 bg-background text-foreground">

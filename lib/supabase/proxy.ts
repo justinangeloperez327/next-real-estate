@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { env } from "@/lib/env";
+import { getAuthConfig } from "@/lib/env";
 import { isAdmin } from "@/features/auth/roles";
 
 const AUTH_PAGES = ["/sign-in", "/sign-up", "/forgot-password"];
@@ -14,27 +14,30 @@ const AUTH_PAGES = ["/sign-in", "/sign-up", "/forgot-password"];
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
 
-  const supabase = createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
+  const config = getAuthConfig();
+  const supabase =
+    config &&
+    createServerClient(config.url, config.anonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          );
+          response = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options),
+          );
+        },
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value),
-        );
-        response = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options),
-        );
-      },
-    },
-  });
+    });
 
   // Must run first: refreshes an expired session. getClaims() verifies the
   // JWT locally instead of calling Supabase Auth on every request.
-  const { data } = await supabase.auth.getClaims();
-  const claims = data?.claims ?? null;
+  const session = await supabase?.auth.getClaims();
+  const claims = session?.data?.claims ?? null;
 
   const { pathname } = request.nextUrl;
   const redirectTo = (path: string) => {

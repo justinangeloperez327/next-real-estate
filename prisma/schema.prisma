@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model PropertyListing {
+  id           String   @id
+  category     String
+  position     Int
+  summary      Json
+  detail       Json
+  neighborhood String?
+  isCurrent    Boolean  @default(true) @map("is_current")
+  importedAt   DateTime @default(now()) @map("imported_at") @db.Timestamptz(6)
+
+  // A partial index for current listings is defined in the initial migration.
+  @@map("property_listings")
+}
+
+model PropertyImportRun {
+  month       DateTime  @id @db.Date
+  runId       String    @map("run_id") @db.Uuid
+  startedAt   DateTime  @default(now()) @map("started_at") @db.Timestamptz(6)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+
+  @@map("property_import_runs")
+}
+
+model ContactMessage {
+  id        BigInt   @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt(sort: Desc), id(sort: Desc)], map: "contact_messages_created_at_id_idx")
+  @@map("contact_messages")
+}

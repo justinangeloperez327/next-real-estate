@@ -1,8 +1,8 @@
 # JUSTIN · Real Estate
 
 A real-estate demo with a monthly listing sample from Realtor.com via
-[RealtyAPI](https://www.realtyapi.io/). Supabase stores the sample and handles
-sign-in and contact messages.
+[RealtyAPI](https://www.realtyapi.io/). Prisma Postgres stores the sample and contact
+messages. Supabase Auth is optional for accounts and dashboard access.
 
 Demo: [justin-real-estate.vercel.app](https://justin-real-estate.vercel.app/)
 
@@ -10,36 +10,43 @@ Demo: [justin-real-estate.vercel.app](https://justin-real-estate.vercel.app/)
 
 - Next.js 16 (App Router, `proxy.ts`, typed routes) · React 19
 - RealtyAPI (Realtor.com provider) for listings, photos, agents, schools
-- Supabase (property snapshot, auth and contact messages) via `@supabase/ssr`
+- Prisma ORM and PostgreSQL for property snapshots and contact messages
+- Supabase Auth via `@supabase/ssr` for optional accounts
 - Tailwind CSS 4 · shadcn/ui · lucide-react
 - Zod 4 for form validation · Mapbox (react-map-gl) for maps
 - Node.js 24 (Vercel default)
 
 ## Getting started
 
-1. Copy `.env.example` to `.env.local` and set the Supabase URL and anon key.
-   Add them to Vercel as well. Mapbox and a default market are optional.
-2. Apply the Supabase migrations in filename order with your usual migration
-   workflow. For an existing database that already has contact messages, the
-   new migration is `supabase/migrations/20261126060000_property_snapshots.sql`.
-3. Install and run:
+1. In the Vercel project, connect [Prisma Postgres from the Marketplace](https://vercel.com/marketplace/prisma/prisma-postgres).
+   The integration sets `DATABASE_URL`. For local use, pull your Vercel environment
+   variables or set the connection string in `.env.local`. Set an optional
+   `DIRECT_DATABASE_URL` if the provider requires a direct connection for migrations.
+2. Apply the Prisma migration manually before importing or deploying the app:
 
    ```bash
    npm ci
+   npm run db:deploy
    npm run dev
    ```
 
+3. Set the optional Supabase Auth URL and anon key if you use sign-in and the
+   admin dashboard. Listing search, details and the public contact form only
+   need PostgreSQL. For an existing install, export legacy contact messages
+   separately before moving them to the new database. The Prisma migration
+   creates the new tables and does not move legacy data.
+
 ## Monthly property import
 
-The homepage, search and detail pages read the stored sample from Supabase.
+The homepage, search and detail pages read the stored sample from PostgreSQL.
 The importer takes up to 24 homes for sale and 24 rental homes in one market
 (Austin, TX by default). A full import uses at most 50 RealtyAPI requests per
 attempt: two searches and up to 48 detail requests. The app serves the previous
 snapshot if a refresh fails.
 
 1. Add these GitHub Actions repository secrets:
-   `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `REALTYAPI_KEY`.
-   The service role and provider keys are for the importer only.
+   `DATABASE_URL` and `REALTYAPI_KEY`. The RealtyAPI key is for the
+   importer only.
 2. To use a different market, set the Actions repository variable
    `NEXT_PUBLIC_DEFAULT_LOCATION` to the same value as the web app.
 3. Run **Import property snapshot** manually in GitHub Actions for the first
@@ -79,7 +86,7 @@ app/
   auth/callback/      Supabase email-link handler
   sitemap.ts, robots.ts
 features/
-  properties/         Supabase queries, snapshot filters, normalization, components
+  properties/         Prisma queries, snapshot filters, normalization, components
   auth/               session, roles, schema, actions, form components
   contact/            contact form, schema, action, admin queries
 components/
@@ -90,10 +97,12 @@ components/
 lib/
   forms.ts            FormState + validateForm (zod) for server actions
   realtyapi/          RealtyAPI client and raw response types
-  supabase/           server (cookies), public and proxy clients
+  prisma.ts           server-side PostgreSQL client
+  supabase/           Supabase Auth server and proxy clients
   env.ts, format.ts, redirect.ts, site.ts, utils.ts
 proxy.ts              session refresh + guards for /dashboard and auth pages
-supabase/migrations/  RLS policies and tables
+prisma/migrations/    PostgreSQL schema and transactional import functions
+supabase/migrations/  Legacy data schema for existing Supabase installs
 ```
 
 ### Forms
@@ -108,7 +117,7 @@ kept (passwords never are), and listing enquiries carry the listing reference th
 
 - **Cache Components / partial prerendering**: pages ship a static HTML shell
   from the CDN; listings stream in from the data cache.
-- **Cached reads**: Supabase listing summaries and details use the Next.js
+- **Cached reads**: PostgreSQL listing summaries and details use the Next.js
   data cache. The monthly import is the only code path that calls RealtyAPI.
 - **No auth round-trips on public pages**: the proxy only runs on
   `/dashboard` and the auth pages, and uses `getClaims()` (local JWT
@@ -120,7 +129,8 @@ kept (passwords never are), and listing enquiries carry the listing reference th
 
 Automatic Git deployments are turned off in `vercel.json`
 (`git.deploymentEnabled: false`), so pushes and pull requests no longer
-deploy to Vercel. Deploy manually with the Vercel CLI:
+deploy to Vercel. Apply the migrations and run the first property import against
+the production database before deploying manually with the Vercel CLI:
 
 ```bash
 npx vercel          # preview deployment
@@ -140,6 +150,7 @@ branches only, for example `{ "main": true }`.
 | `npm run lint`              | ESLint (Next.js core-web-vitals + TS rules) |
 | `npm run typecheck`         | Generate route types and run `tsc`          |
 | `npm test`                  | Unit tests (Vitest)                         |
+| `npm run db:deploy`         | Apply pending PostgreSQL migrations         |
 | `npm run properties:import` | Import this month’s property sample         |
 | `npm run check`             | Lint + typecheck + tests                    |
 | `npm run format`            | Format with Prettier                        |

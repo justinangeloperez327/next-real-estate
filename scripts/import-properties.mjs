@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { createClient } from "@supabase/supabase-js";
+import { getDb } from "../lib/prisma.ts";
 import {
   DEFAULT_LOCATION,
   LISTING_ID_PATTERN,
@@ -124,58 +124,48 @@ async function loadSnapshot(location) {
 }
 
 async function main() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key || !process.env.REALTYAPI_KEY) {
-    throw new Error(
-      "Set NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and REALTYAPI_KEY before importing",
-    );
+  if (!process.env.DATABASE_URL || !process.env.REALTYAPI_KEY) {
+    throw new Error("Set DATABASE_URL and REALTYAPI_KEY before importing");
   }
 
-  const database = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const database = getDb();
   const runId = randomUUID();
-  const { data: month, error: claimError } = await database.rpc(
-    "claim_property_import",
-    {
-      import_id: runId,
-    },
-  );
-  if (claimError)
-    throw new Error(`Could not claim the import: ${claimError.message}`);
-  if (!month) {
-    console.info(
-      "This month’s property import is already complete or running.",
-    );
-    return;
-  }
-
   try {
-    const rows = await loadSnapshot(DEFAULT_LOCATION);
-    const { error } = await database.rpc("publish_property_snapshot", {
-      import_month: month,
-      import_id: runId,
-      listings: rows,
-    });
-    if (error)
-      throw new Error(`Could not publish the snapshot: ${error.message}`);
-    console.info(
-      `Published ${rows.length} properties for ${month} (${DEFAULT_LOCATION}).`,
-    );
-  } catch (error) {
-    const { error: releaseError } = await database
-      .from("property_import_runs")
-      .delete()
-      .eq("run_id", runId)
-      .eq("month", month)
-      .is("completed_at", null);
-    if (releaseError)
-      console.error(
-        "Could not release the import claim:",
-        releaseError.message,
+    const [{ month }] = await database.$queryRaw`
+      select public.claim_property_import(${runId}::uuid)::text as month
+    `;
+    if (!month) {
+      console.info(
+        "This month’s property import is already complete or running.",
       );
-    throw error;
+      return;
+    }
+
+    try {
+      const rows = await loadSnapshot(DEFAULT_LOCATION);
+      await database.$queryRaw`
+        select public.publish_property_snapshot(
+          ${month}::date, ${runId}::uuid, ${JSON.stringify(rows)}::jsonb
+        )::text
+      `;
+      console.info(
+        `Published ${rows.length} properties for ${month} (${DEFAULT_LOCATION}).`,
+      );
+    } catch (error) {
+      try {
+        await database.propertyImportRun.deleteMany({
+          where: { runId, month: new Date(month), completedAt: null },
+        });
+      } catch (releaseError) {
+        console.error(
+          "Could not release the import claim:",
+          releaseError.message,
+        );
+      }
+      throw error;
+    }
+  } finally {
+    await database.$disconnect();
   }
 }
 

@@ -1,9 +1,9 @@
 import "server-only";
 import { requireAdmin } from "@/features/auth/session";
-import { createClient } from "@/lib/supabase/server";
+import { getDb } from "@/lib/prisma";
 
 export type ContactMessage = {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string | null;
@@ -11,19 +11,20 @@ export type ContactMessage = {
   created_at: string;
 };
 
-/** Newest first. Admin-only (enforced here and by row-level security). */
+/** Newest first. Admin-only (authorized before the database read). */
 export async function getContactMessages(
   limit = 100,
 ): Promise<ContactMessage[]> {
   await requireAdmin();
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("contact_messages")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-  if (error) throw new Error(`Failed to load messages: ${error.message}`);
-  return (data ?? []) as ContactMessage[];
+  const rows = await getDb().contactMessage.findMany({
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: limit,
+  });
+  return rows.map(({ id, createdAt, ...fields }) => ({
+    ...fields,
+    id: id.toString(),
+    created_at: createdAt.toISOString(),
+  }));
 }
 
 /** Counts for the dashboard, computed at request time. */

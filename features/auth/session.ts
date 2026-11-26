@@ -17,6 +17,7 @@ export { isAdmin };
  */
 export const getSession = cache(async (): Promise<JwtPayload | null> => {
   const supabase = await createClient();
+  if (!supabase) return null;
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data) return null;
   return data.claims;
