@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { PageHero } from "@/components/layout/page-hero";
+import { Skeleton } from "@/components/ui/skeleton";
+import { listingIdSchema } from "@/features/contact/schema";
 import { ContactForm } from "@/features/contact/components/contact-form";
 
 export const metadata: Metadata = {
@@ -8,7 +11,7 @@ export const metadata: Metadata = {
     "Talk to our property specialists about buying, selling, renting or investing.",
 };
 
-export default function ContactPage() {
+export default function ContactPage({ searchParams }: PageProps<"/contact">) {
   return (
     <>
       <PageHero
@@ -23,8 +26,18 @@ export default function ContactPage() {
             listing link so we can find it quickly.
           </p>
         </section>
-        <ContactForm />
+        <Suspense fallback={<Skeleton className="h-96 rounded-lg" />}>
+          <ContactEnquiry searchParams={searchParams} />
+        </Suspense>
       </div>
     </>
   );
+}
+
+async function ContactEnquiry({
+  searchParams,
+}: Pick<PageProps<"/contact">, "searchParams">) {
+  const listing = listingIdSchema.safeParse((await searchParams).listing);
+  const listingId = listing.success ? listing.data : undefined;
+  return <ContactForm key={listingId ?? "general"} listingId={listingId} />;
 }

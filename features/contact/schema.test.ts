@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { contactSchema } from "./schema";
+import {
+  contactSchema,
+  listingMessagePrefix,
+  MAX_CONTACT_MESSAGE_LENGTH,
+} from "./schema";
 
 const valid = {
   name: "Ana",
@@ -27,6 +31,35 @@ describe("contactSchema", () => {
   it("rejects a filled honeypot", () => {
     expect(
       contactSchema.safeParse({ ...valid, website: "spam.biz" }).success,
+    ).toBe(false);
+  });
+
+  it("reserves space for a listing reference in the stored message", () => {
+    const listingId = "12345678901234567890";
+    const max =
+      MAX_CONTACT_MESSAGE_LENGTH - listingMessagePrefix(listingId).length;
+    expect(
+      contactSchema.safeParse({ ...valid, listingId, message: "x".repeat(max) })
+        .success,
+    ).toBe(true);
+    expect(
+      contactSchema.safeParse({
+        ...valid,
+        listingId,
+        message: "x".repeat(max + 1),
+      }).success,
+    ).toBe(false);
+    expect(
+      contactSchema.safeParse({
+        ...valid,
+        message: "x".repeat(MAX_CONTACT_MESSAGE_LENGTH),
+      }).success,
+    ).toBe(true);
+  });
+
+  it("requires a valid listing identifier when one is submitted", () => {
+    expect(
+      contactSchema.safeParse({ ...valid, listingId: "home-1234" }).success,
     ).toBe(false);
   });
 

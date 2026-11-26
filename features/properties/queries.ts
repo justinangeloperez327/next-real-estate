@@ -5,7 +5,12 @@ import type {
   RawDetailResponse,
   RawSearchResponse,
 } from "@/lib/realtyapi/types";
-import { DEFAULT_LOCATION, PAGE_SIZE } from "@/features/properties/constants";
+import {
+  DEFAULT_LOCATION,
+  LISTING_ID_PATTERN,
+  MAX_RESULTS_PAGE,
+  PAGE_SIZE,
+} from "@/features/properties/constants";
 import { toSearchQuery } from "@/features/properties/filters";
 import {
   normalizeDetail,
@@ -43,7 +48,7 @@ export async function searchListings(
     listings,
     total: data.total ?? listings.length,
     page: query.page,
-    hasNextPage: !!data.nextPage,
+    hasNextPage: query.page < MAX_RESULTS_PAGE && !!data.nextPage,
   };
 }
 
@@ -55,7 +60,7 @@ export async function getLatestListings(limit = 6) {
 
 /** Returns the listing, or null if the id is malformed or not found. */
 export async function getListing(id: unknown): Promise<ListingDetail | null> {
-  if (typeof id !== "string" || !/^\d{4,20}$/.test(id)) return null;
+  if (typeof id !== "string" || !LISTING_ID_PATTERN.test(id)) return null;
   return getListingById(id);
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
+import Link from "next/link";
 import { DraftNotice } from "@/components/forms/draft-notice";
 import { useFormDraft } from "@/components/forms/use-form-draft";
 import { FormAlert } from "@/components/forms/form-alert";
@@ -10,17 +11,25 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { sendContactMessage } from "@/features/contact/actions";
 import { useFieldValidation } from "@/components/forms/use-field-validation";
-import { contactSchema, type ContactField } from "@/features/contact/schema";
+import {
+  contactSchema,
+  listingMessagePrefix,
+  MAX_CONTACT_MESSAGE_LENGTH,
+  type ContactField,
+} from "@/features/contact/schema";
 import { initialFormState, type FormState } from "@/lib/forms";
 
-export function ContactForm() {
+const draftExcludedFields = ["website"];
+
+export function ContactForm({ listingId }: { listingId?: string }) {
   const [state, action, pending] = useActionState(
     sendContactMessage,
     initialFormState as FormState<ContactField>,
   );
   const v = useFieldValidation(contactSchema, state.fieldErrors);
   const values = state.values ?? {};
-  const draft = useFormDraft("draft:contact", { exclude: ["website"] });
+  const draftKey = listingId ? `draft:contact:${listingId}` : "draft:contact";
+  const draft = useFormDraft(draftKey, { exclude: draftExcludedFields });
   const { clear } = draft;
 
   useEffect(() => {
@@ -43,6 +52,20 @@ export function ContactForm() {
       className="space-y-5 rounded-lg border border-t-2 border-t-brass bg-card p-4 sm:p-8"
     >
       <h2 className="font-display text-3xl">Send us a message</h2>
+      {listingId && (
+        <>
+          <input type="hidden" name="listingId" value={listingId} />
+          <p className="text-sm text-muted-foreground">
+            <Link
+              href={`/properties/${listingId}`}
+              className="text-primary underline underline-offset-4"
+            >
+              Listing reference {listingId}
+            </Link>{" "}
+            will be included in your message.
+          </p>
+        </>
+      )}
       {draft.restored && <DraftNotice onDiscard={draft.discard} />}
       <div className="grid gap-6 sm:grid-cols-2">
         <FormField id="name" label="Name" error={v.errorFor("name")}>
@@ -94,6 +117,10 @@ export function ContactForm() {
             {...v.fieldProps("message")}
             name="message"
             rows={5}
+            maxLength={
+              MAX_CONTACT_MESSAGE_LENGTH -
+              (listingId ? listingMessagePrefix(listingId).length : 0)
+            }
             defaultValue={values.message}
             required
           />

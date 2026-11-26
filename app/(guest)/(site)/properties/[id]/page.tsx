@@ -67,6 +67,9 @@ async function PropertyDetail({
   if (!listing) notFound();
 
   const rent = listing.category === "rent";
+  const mapPoints = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+    ? toMapPoints([listing])
+    : [];
   const phone = listing.agent?.phone;
   const email = listing.agent?.email;
   const dialablePhone = phone?.replace(/[^\d+]/g, "");
@@ -257,15 +260,11 @@ async function PropertyDetail({
             </section>
           )}
 
-          {listing.latitude !== null && (
+          {mapPoints.length > 0 && (
             <section className="py-8">
               <h2 className="font-display text-3xl">Location</h2>
               <div className="mt-4">
-                <PropertyMap
-                  points={toMapPoints([listing])}
-                  zoom={15}
-                  height={400}
-                />
+                <PropertyMap points={mapPoints} zoom={15} height={400} />
               </div>
             </section>
           )}
@@ -292,7 +291,11 @@ async function PropertyDetail({
               Email agent
             </a>
           ) : (
-            <Link href="/contact">Ask about this home</Link>
+            <Link
+              href={{ pathname: "/contact", query: { listing: listing.id } }}
+            >
+              Ask about this home
+            </Link>
           )}
         </Button>
       </div>
@@ -406,7 +409,11 @@ function ContactCard({
         )}
         {!phoneHref && !emailHref && (
           <Button asChild>
-            <Link href="/contact">Ask about this home</Link>
+            <Link
+              href={{ pathname: "/contact", query: { listing: listing.id } }}
+            >
+              Ask about this home
+            </Link>
           </Button>
         )}
         {listing.sourceUrl && (

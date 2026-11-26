@@ -2,7 +2,11 @@
 
 import { createPublicClient } from "@/lib/supabase/public";
 import { validateForm, type FormState } from "@/lib/forms";
-import { contactSchema, type ContactField } from "@/features/contact/schema";
+import {
+  contactSchema,
+  listingMessagePrefix,
+  type ContactField,
+} from "@/features/contact/schema";
 
 const SUCCESS: FormState<ContactField> = {
   status: "success",
@@ -17,12 +21,23 @@ export async function sendContactMessage(
   if (formData.get("website")) return SUCCESS;
 
   const form = validateForm(contactSchema, formData);
-  if (!form.ok) return form.state;
+  if (!form.ok) {
+    if (form.state.fieldErrors?.listingId) {
+      return {
+        ...form.state,
+        message: "Open the listing again to send an enquiry.",
+      };
+    }
+    return form.state;
+  }
 
-  const { website: _honeypot, ...message } = form.data;
+  const { website: _honeypot, listingId, message, ...contact } = form.data;
   const { error } = await createPublicClient()
     .from("contact_messages")
-    .insert(message);
+    .insert({
+      ...contact,
+      message: listingId ? listingMessagePrefix(listingId) + message : message,
+    });
 
   if (error) {
     console.error("sendContactMessage failed:", error);

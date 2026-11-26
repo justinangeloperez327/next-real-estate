@@ -10,7 +10,10 @@ import PropertySearch from "@/features/properties/components/property-search";
 import { PropertyGridSkeleton } from "@/features/properties/components/property-skeletons";
 import { SortSelect } from "@/features/properties/components/sort-select";
 import { DEFAULT_LOCATION } from "@/features/properties/constants";
-import { parseFilters } from "@/features/properties/filters";
+import {
+  hasInvertedPriceRange,
+  parseFilters,
+} from "@/features/properties/filters";
 import { toMapPoints } from "@/features/properties/map-points";
 import { searchListings } from "@/features/properties/queries";
 import type { PropertyFilters } from "@/features/properties/types";
@@ -60,10 +63,13 @@ async function PropertyResults({
   searchParams,
 }: Pick<PageProps<"/properties">, "searchParams">) {
   const filters = parseFilters(await searchParams);
+  if (hasInvertedPriceRange(filters)) return null;
   const { listings, total, page, hasNextPage } = await searchListings(filters);
   const location = filters.location || DEFAULT_LOCATION;
   const rent = filters.category === "rent";
-  const mapPoints = toMapPoints(listings);
+  const mapPoints = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+    ? toMapPoints(listings)
+    : [];
   const filtered = Object.entries(filters).some(
     ([key, value]) =>
       !["page", "sort"].includes(key) &&

@@ -2,7 +2,7 @@
 
 import Form from "next/form";
 import { useFormStatus } from "react-dom";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ChevronDownIcon,
@@ -19,6 +19,10 @@ import {
   RENT_PRICE_OPTIONS,
   ROOM_OPTIONS,
 } from "@/features/properties/constants";
+import {
+  hasInvertedPriceRange,
+  PRICE_RANGE_ERROR,
+} from "@/features/properties/filters";
 import { cn } from "@/lib/utils";
 
 type Option = { text: string; value: string };
@@ -30,6 +34,7 @@ function FilterSelect({
   defaultValue,
   placeholder,
   onChange,
+  errorId,
 }: {
   name: string;
   label: string;
@@ -37,6 +42,7 @@ function FilterSelect({
   defaultValue?: string;
   placeholder?: string;
   onChange?: (value: string) => void;
+  errorId?: string;
 }) {
   return (
     <label className="block min-w-0 text-sm font-medium">
@@ -44,6 +50,8 @@ function FilterSelect({
       <span className="relative block">
         <select
           name={name}
+          aria-invalid={errorId ? true : undefined}
+          aria-describedby={errorId}
           defaultValue={defaultValue}
           onChange={
             onChange ? (event) => onChange(event.target.value) : undefined
@@ -105,12 +113,39 @@ function SearchForm({
   const [category, setCategory] = useState<string>(initialCategory);
   const priceOptions = category === "rent" ? RENT_PRICE_OPTIONS : PRICE_OPTIONS;
   const sort = get("sort");
+  const filtersRef = useRef<HTMLDetailsElement>(null);
+  const [invalidPriceRange, setInvalidPriceRange] = useState(
+    () =>
+      !compact &&
+      hasInvertedPriceRange({
+        minPrice: get("minPrice"),
+        maxPrice: get("maxPrice"),
+      }),
+  );
+  const priceErrorId = invalidPriceRange ? "property-price-error" : undefined;
 
   return (
     <Form
       action="/properties"
       role="search"
       aria-label="Search homes"
+      onSubmit={(event) => {
+        const fields = new FormData(event.currentTarget);
+        if (
+          !hasInvertedPriceRange({
+            minPrice: String(fields.get("minPrice") ?? ""),
+            maxPrice: String(fields.get("maxPrice") ?? ""),
+          })
+        )
+          return;
+
+        event.preventDefault();
+        setInvalidPriceRange(true);
+        if (filtersRef.current) filtersRef.current.open = true;
+        event.currentTarget
+          .querySelector<HTMLSelectElement>('[name="maxPrice"]')
+          ?.focus();
+      }}
       className={cn(
         "rounded-lg border bg-card p-4 text-card-foreground sm:p-5",
         compact && "border-t-2 border-t-brass shadow-sm",
@@ -130,7 +165,10 @@ function SearchForm({
           label="Buy or rent"
           options={CATEGORY_OPTIONS}
           defaultValue={initialCategory}
-          onChange={setCategory}
+          onChange={(value) => {
+            setCategory(value);
+            setInvalidPriceRange(false);
+          }}
         />
         <div className="min-w-0">
           <label
@@ -164,6 +202,7 @@ function SearchForm({
       </div>
       {!compact && (
         <details
+          ref={filtersRef}
           className="group mt-3 border-t pt-1"
           open={
             filterNames.some((name) =>
@@ -202,6 +241,8 @@ function SearchForm({
             <FilterSelect
               key={`min-${category}`}
               name="minPrice"
+              errorId={priceErrorId}
+              onChange={() => setInvalidPriceRange(false)}
               label="Min price"
               options={priceOptions}
               defaultValue={
@@ -211,6 +252,8 @@ function SearchForm({
             <FilterSelect
               key={`max-${category}`}
               name="maxPrice"
+              errorId={priceErrorId}
+              onChange={() => setInvalidPriceRange(false)}
               label="Max price"
               options={priceOptions}
               defaultValue={
@@ -218,6 +261,15 @@ function SearchForm({
               }
             />
           </div>
+          {invalidPriceRange && (
+            <p
+              id={priceErrorId}
+              role="alert"
+              className="pb-2 text-sm text-destructive"
+            >
+              {PRICE_RANGE_ERROR}
+            </p>
+          )}
         </details>
       )}
     </Form>

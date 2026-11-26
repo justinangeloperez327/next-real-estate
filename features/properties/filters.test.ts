@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseFilters, toSearchQuery } from "./filters";
+import { hasInvertedPriceRange, parseFilters, toSearchQuery } from "./filters";
 
 const defaults = { location: "Austin, TX", pageSize: 24 };
 
@@ -61,6 +61,18 @@ describe("toSearchQuery", () => {
   it("supports a one-sided price range", () => {
     expect(toSearchQuery({ maxPrice: "500000" }, defaults).priceRange).toBe(
       "max:500000",
+    );
+  });
+
+  it("never sends an inverted range to RealtyAPI", () => {
+    const inverted = { minPrice: "750000", maxPrice: "300000" };
+    expect(hasInvertedPriceRange(inverted)).toBe(true);
+    expect(toSearchQuery(inverted, defaults).priceRange).toBeUndefined();
+
+    const equal = { minPrice: "300000", maxPrice: "300000" };
+    expect(hasInvertedPriceRange(equal)).toBe(false);
+    expect(toSearchQuery(equal, defaults).priceRange).toBe(
+      "min:300000,max:300000",
     );
   });
 

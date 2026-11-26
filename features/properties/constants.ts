@@ -3,6 +3,8 @@ export const DEFAULT_LOCATION =
   process.env.NEXT_PUBLIC_DEFAULT_LOCATION || "Austin, TX";
 
 export const PAGE_SIZE = 24;
+export const MAX_RESULTS_PAGE = 50;
+export const LISTING_ID_PATTERN = /^\d{4,20}$/;
 
 export const CATEGORY_OPTIONS = [
   { text: "Buy", value: "sale" },
