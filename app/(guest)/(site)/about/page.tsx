@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/layout/page-hero";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +39,6 @@ export default function AboutPage() {
   return (
     <>
       <PageHero
-        image="/images/about.jpg"
         title="About Justin Real Estate"
         subtitle="Helping buyers, sellers, and renters through their next move."
       />
@@ -48,6 +49,14 @@ export default function AboutPage() {
           {STORY.map((p) => (
             <p key={p}>{p}</p>
           ))}
+          <div className="flex flex-wrap gap-3 pt-2">
+            <Button asChild>
+              <Link href="/properties">Browse properties</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/contact">Contact us</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -55,11 +64,11 @@ export default function AboutPage() {
         {SECTIONS.map((section, i) => (
           <div
             key={section.title}
-            className="grid items-stretch overflow-hidden rounded-xl border md:grid-cols-2"
+            className="grid items-stretch overflow-hidden rounded-lg border bg-card md:grid-cols-2"
           >
             <div
               className={cn(
-                "flex flex-col justify-center gap-4 p-8",
+                "flex flex-col justify-center gap-4 p-5 sm:p-8",
                 i % 2 === 1 && "md:order-2",
               )}
             >

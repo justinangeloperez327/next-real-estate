@@ -10,12 +10,12 @@ async function CurrentYear() {
 
 export function SiteFooter() {
   return (
-    <footer className="border-t bg-primary text-primary-foreground">
+    <footer className="border-t border-brass/45 bg-primary text-primary-foreground">
       <div className="container flex flex-col gap-4 py-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link
             href="/"
-            className="inline-flex min-h-11 items-center rounded-md text-xl font-semibold focus-visible:outline-white"
+            className="inline-flex min-h-11 items-center rounded-md font-display text-3xl focus-visible:outline-white"
           >
             Justin Real Estate
           </Link>

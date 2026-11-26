@@ -15,14 +15,14 @@ export default function Navbar() {
   );
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-background">
+    <header className="public-nav sticky top-0 z-50 border-b border-brass/45 bg-background text-foreground">
       <div className="container flex h-[4.5rem] items-center justify-between gap-6">
         <Link
           href="/"
           className="inline-flex min-h-11 shrink-0 items-center gap-2.5 rounded-md"
           aria-label="Justin Real Estate, home"
         >
-          <span className="grid size-9 place-items-center rounded-md bg-primary text-primary-foreground">
+          <span className="grid size-9 place-items-center border border-brass text-brass">
             <HouseIcon aria-hidden className="size-5" />
           </span>
           <span className="leading-tight">

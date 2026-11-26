@@ -44,9 +44,53 @@
   }
 }
 
-@theme inline {
-  --font-display: Georgia, "Times New Roman", serif;
+@layer base {
+  .public-theme {
+    --background: 42 38.462% 94.902%;
+    --foreground: 214.737 48.718% 15.294%;
+    --card: 45 100% 99.216%;
+    --card-foreground: var(--foreground);
+    --popover: var(--card);
+    --popover-foreground: var(--foreground);
+    --primary: var(--foreground);
+    --primary-foreground: var(--card);
+    --primary-hover: 215 42% 24%;
+    --secondary: 39 36% 91%;
+    --secondary-foreground: var(--foreground);
+    --muted: 39 36% 91%;
+    --muted-foreground: 212.903 15.897% 38.235%;
+    --accent: 39 36% 91%;
+    --accent-foreground: var(--foreground);
+    --border: 39 19% 82%;
+    --input: 40 9% 54%;
+    --ring: 37 48% 34%;
+    --brass: #b08d57;
+    --site-display:
+      var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+    --radius: 0.375rem;
+  }
 
+  @media (width < 64rem) {
+    .public-theme:has(.property-contact-bar) > footer {
+      padding-bottom: calc(4.25rem + env(safe-area-inset-bottom));
+    }
+  }
+
+  .public-nav {
+    --background: 214.737 48.718% 15.294%;
+    --foreground: 42 38.462% 94.902%;
+    --muted-foreground: 40 24% 83%;
+    --accent: 215 35% 24%;
+    --accent-foreground: var(--foreground);
+    --input: 37 36% 52%;
+    --ring: 37 55% 71%;
+  }
+}
+
+@theme inline {
+  --font-display: var(--site-display, Georgia, "Times New Roman", serif);
+
+  --color-brass: var(--brass, #b08d57);
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));

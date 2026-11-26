@@ -17,7 +17,7 @@ export function PropertyCard({
   const photo = listing.photos[0];
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground hover:border-input hover:shadow-sm">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-lg border bg-card text-card-foreground hover:border-input hover:shadow-sm">
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         {photo ? (
           <Image
@@ -36,10 +36,6 @@ export function PropertyCard({
         )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-5">
-        <p className="text-sm text-muted-foreground">
-          {CATEGORY_LABEL[listing.category]} · {listing.propertyType}
-          {listing.isPending && " · Pending"}
-        </p>
         <p className="text-2xl font-semibold tracking-tight text-primary tabular-nums">
           {formatListingPrice(listing.price, listing.priceMax)}
           {listing.category === "rent" && listing.price !== null && (
@@ -49,7 +45,7 @@ export function PropertyCard({
             </span>
           )}
         </p>
-        <h3 className="font-medium group-hover:underline underline-offset-4">
+        <h3 className="font-medium wrap-anywhere underline-offset-4 group-hover:underline">
           {/* Stretched link: the whole card is clickable, but only the
               address is announced as the link name. */}
           <Link
@@ -64,6 +60,10 @@ export function PropertyCard({
             .filter(Boolean)
             .join(", ")}
         </p>
+        <p className="text-sm text-muted-foreground">
+          {CATEGORY_LABEL[listing.category]} · {listing.propertyType}
+          {listing.isPending && " · Pending"}
+        </p>
         <PropertyFeatures
           listing={listing}
           className="mt-auto border-t pt-4 text-sm"
@@ -72,7 +72,7 @@ export function PropertyCard({
       </div>
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-xl ring-ring group-has-[a:focus-visible]:ring-2 group-has-[a:focus-visible]:ring-inset"
+        className="pointer-events-none absolute inset-0 rounded-lg ring-ring group-has-[a:focus-visible]:ring-2 group-has-[a:focus-visible]:ring-inset"
       />
     </article>
   );

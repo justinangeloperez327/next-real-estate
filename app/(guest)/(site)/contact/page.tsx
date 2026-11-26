@@ -12,7 +12,6 @@ export default function ContactPage() {
   return (
     <>
       <PageHero
-        image="/images/contact.jpg"
         title="Contact us"
         subtitle="Buying, selling, renting or investing? We're happy to help."
       />

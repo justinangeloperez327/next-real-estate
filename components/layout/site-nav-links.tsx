@@ -30,7 +30,9 @@ function Links({ pathname = "" }: { pathname?: string }) {
         }
         className={cn(
           "inline-flex min-h-11 items-center rounded-md px-3 text-sm font-medium hover:bg-accent hover:text-foreground",
-          active ? "bg-accent text-primary" : "text-muted-foreground",
+          active
+            ? "bg-accent text-foreground shadow-[inset_0_-2px_var(--color-brass)]"
+            : "text-muted-foreground",
         )}
       >
         {label}

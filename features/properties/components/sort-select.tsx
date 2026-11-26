@@ -18,11 +18,11 @@ export function SortSelect() {
 
   return (
     <div className="flex items-center gap-2">
-      <label id="sort-label" className="text-sm text-muted-foreground">
+      <span id="sort-label" className="text-sm text-muted-foreground">
         Sort by
-      </label>
+      </span>
       <Select
-        defaultValue={params.get("sort") ?? "Recommended"}
+        value={params.get("sort") ?? "Recommended"}
         onValueChange={(value) => {
           const next = new URLSearchParams(params);
           next.set("sort", value);
@@ -30,10 +30,10 @@ export function SortSelect() {
           router.push(`${pathname}?${next.toString()}` as never);
         }}
       >
-        <SelectTrigger aria-labelledby="sort-label" className="w-48">
+        <SelectTrigger aria-labelledby="sort-label" className="w-44">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent align="end">
+        <SelectContent align="end" className="public-theme">
           {SORT_OPTIONS.map((o) => (
             <SelectItem key={o.value} value={o.value}>
               {o.text}

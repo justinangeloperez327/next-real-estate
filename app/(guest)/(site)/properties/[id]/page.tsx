@@ -67,6 +67,14 @@ async function PropertyDetail({
   if (!listing) notFound();
 
   const rent = listing.category === "rent";
+  const phone = listing.agent?.phone;
+  const email = listing.agent?.email;
+  const dialablePhone = phone?.replace(/[^\d+]/g, "");
+  const phoneHref =
+    dialablePhone && /\d/.test(dialablePhone) ? `tel:${dialablePhone}` : null;
+  const emailHref = email
+    ? `mailto:${email}?subject=${encodeURIComponent(listing.address.full)}`
+    : null;
   const facts: [string, string | null][] = [
     ["Type", listing.propertyType],
     ["Year built", listing.yearBuilt ? String(listing.yearBuilt) : null],
@@ -90,7 +98,7 @@ async function PropertyDetail({
   const shownFacts = facts.filter((f): f is [string, string] => !!f[1]);
 
   return (
-    <article className="container py-6 sm:py-8">
+    <article className="container pt-6 pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:py-8">
       <Link
         href="/properties"
         className="-ml-2 inline-flex h-11 items-center gap-1 px-2 text-sm text-muted-foreground hover:text-foreground"
@@ -103,12 +111,21 @@ async function PropertyDetail({
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-12">
         <div className="min-w-0">
-          <header className="border-b pb-6">
-            <p className="text-sm text-muted-foreground">
+          <header className="border-b border-brass/55 pb-6">
+            <p className="mb-2 text-sm text-muted-foreground">
               {CATEGORY_LABEL[listing.category]}
               {listing.isPending && " · Pending"}
             </p>
-            <h1 className="mt-2 font-display text-4xl font-normal sm:text-5xl">
+            <p className="mb-4 text-3xl sm:text-4xl font-semibold text-primary tabular-nums">
+              {formatListingPrice(listing.price, listing.priceMax)}
+              {rent && listing.price !== null && (
+                <span className="text-lg font-normal text-muted-foreground">
+                  {" "}
+                  / month
+                </span>
+              )}
+            </p>
+            <h1 className="font-display text-4xl font-normal wrap-anywhere sm:text-5xl">
               {listing.address.line}
             </h1>
             <p className="mt-1 text-muted-foreground">
@@ -121,21 +138,12 @@ async function PropertyDetail({
                 .filter(Boolean)
                 .join(", ")}
             </p>
-            <p className="mt-5 text-3xl font-semibold text-primary tabular-nums">
-              {formatListingPrice(listing.price, listing.priceMax)}
-              {rent && listing.price !== null && (
-                <span className="text-lg font-normal text-muted-foreground">
-                  {" "}
-                  / month
-                </span>
-              )}
-            </p>
             <PropertyFeatures listing={listing} className="mt-4" />
           </header>
 
           {listing.description && (
             <section className="border-b py-8">
-              <h2 className="text-xl font-semibold">About this home</h2>
+              <h2 className="font-display text-3xl">About this home</h2>
               <p className="mt-4 max-w-prose whitespace-pre-line leading-relaxed">
                 {listing.description}
               </p>
@@ -144,7 +152,7 @@ async function PropertyDetail({
 
           {shownFacts.length > 0 && (
             <section className="border-b py-8">
-              <h2 className="text-xl font-semibold">Key facts</h2>
+              <h2 className="font-display text-3xl">Key facts</h2>
               <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
                 {shownFacts.map(([label, value]) => (
                   <div key={label}>
@@ -158,7 +166,7 @@ async function PropertyDetail({
 
           {listing.features.length > 0 && (
             <section className="border-b py-8">
-              <h2 className="text-xl font-semibold">Features</h2>
+              <h2 className="font-display text-3xl">Features</h2>
               <div className="mt-4 grid gap-6 sm:grid-cols-2">
                 {listing.features.slice(0, 10).map((section) => (
                   <div key={section.category}>
@@ -176,7 +184,7 @@ async function PropertyDetail({
 
           {listing.schools.length > 0 && (
             <section className="border-b py-8">
-              <h2 className="text-xl font-semibold">Nearby schools</h2>
+              <h2 className="font-display text-3xl">Nearby schools</h2>
               <ul className="mt-4 divide-y rounded-xl border">
                 {listing.schools.slice(0, 6).map((school) => (
                   <li
@@ -212,7 +220,7 @@ async function PropertyDetail({
 
           {listing.history.length > 0 && (
             <section className="border-b py-8">
-              <h2 className="text-xl font-semibold">Listing history</h2>
+              <h2 className="font-display text-3xl">Listing history</h2>
               <div className="mt-4 overflow-x-auto rounded-xl border">
                 <table className="w-full text-sm">
                   <thead className="bg-muted text-left text-muted-foreground">
@@ -251,7 +259,7 @@ async function PropertyDetail({
 
           {listing.latitude !== null && (
             <section className="py-8">
-              <h2 className="text-xl font-semibold">Location</h2>
+              <h2 className="font-display text-3xl">Location</h2>
               <div className="mt-4">
                 <PropertyMap
                   points={toMapPoints([listing])}
@@ -264,8 +272,29 @@ async function PropertyDetail({
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-          <ContactCard listing={listing} />
+          <ContactCard
+            listing={listing}
+            phoneHref={phoneHref}
+            emailHref={emailHref}
+          />
         </aside>
+      </div>
+      <div className="property-contact-bar fixed inset-x-0 bottom-0 z-40 border-t bg-card px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
+        <Button asChild className="w-full gap-2">
+          {phoneHref ? (
+            <a href={phoneHref}>
+              <PhoneIcon aria-hidden className="size-4" />
+              Call agent
+            </a>
+          ) : emailHref ? (
+            <a href={emailHref}>
+              <MailIcon aria-hidden className="size-4" />
+              Email agent
+            </a>
+          ) : (
+            <Link href="/contact">Ask about this home</Link>
+          )}
+        </Button>
       </div>
     </article>
   );
@@ -314,11 +343,19 @@ function Gallery({ listing }: { listing: ListingDetail }) {
   );
 }
 
-function ContactCard({ listing }: { listing: ListingDetail }) {
+function ContactCard({
+  listing,
+  phoneHref,
+  emailHref,
+}: {
+  listing: ListingDetail;
+  phoneHref: string | null;
+  emailHref: string | null;
+}) {
   const agent = listing.agent;
 
   return (
-    <div className="rounded-xl border bg-card p-6 shadow-sm">
+    <div className="rounded-lg border border-t-2 border-t-brass bg-card p-6 shadow-sm">
       <h2 className="text-sm font-medium text-muted-foreground">
         {agent ? "Listed by" : "Interested in this home?"}
       </h2>
@@ -351,27 +388,25 @@ function ContactCard({ listing }: { listing: ListingDetail }) {
         </div>
       )}
       <div className="mt-6 grid gap-2">
-        {agent?.phone && (
+        {agent?.phone && phoneHref && (
           <Button asChild>
-            <a href={`tel:${agent.phone.replace(/[^\d+]/g, "")}`}>
+            <a href={phoneHref}>
               <PhoneIcon aria-hidden className="mr-2 size-4" />
               Call {formatPhone(agent.phone)}
             </a>
           </Button>
         )}
-        {agent?.email && (
-          <Button asChild variant={agent.phone ? "outline" : "default"}>
-            <a
-              href={`mailto:${agent.email}?subject=${encodeURIComponent(listing.address.full)}`}
-            >
+        {agent?.email && emailHref && (
+          <Button asChild variant={phoneHref ? "outline" : "default"}>
+            <a href={emailHref}>
               <MailIcon aria-hidden className="mr-2 size-4" />
               Email {agent.name.split(" ")[0]}
             </a>
           </Button>
         )}
-        {!agent?.phone && !agent?.email && (
+        {!phoneHref && !emailHref && (
           <Button asChild>
-            <Link href="/contact">Ask our team about it</Link>
+            <Link href="/contact">Ask about this home</Link>
           </Button>
         )}
         {listing.sourceUrl && (

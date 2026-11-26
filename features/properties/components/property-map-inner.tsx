@@ -38,7 +38,7 @@ export default function PropertyMapInner({
         className="flex items-center justify-center rounded-md border text-sm text-muted-foreground"
         style={{ height }}
       >
-        Map unavailable: set NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN.
+        The map is currently unavailable.
       </div>
     );
   }

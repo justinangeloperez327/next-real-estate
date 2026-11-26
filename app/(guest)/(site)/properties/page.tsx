@@ -24,8 +24,8 @@ export default function PropertiesPage({
 }: PageProps<"/properties">) {
   return (
     <>
-      <section className="border-b bg-muted">
-        <div className="container py-8 sm:py-12">
+      <section className="border-b border-brass/55 bg-muted">
+        <div className="container py-8 sm:py-10">
           <h1 className="font-display text-4xl font-normal sm:text-6xl">
             Homes for sale and rent
           </h1>
@@ -63,6 +63,7 @@ async function PropertyResults({
   const { listings, total, page, hasNextPage } = await searchListings(filters);
   const location = filters.location || DEFAULT_LOCATION;
   const rent = filters.category === "rent";
+  const mapPoints = toMapPoints(listings);
   const filtered = Object.entries(filters).some(
     ([key, value]) =>
       !["page", "sort"].includes(key) &&
@@ -109,9 +110,19 @@ async function PropertyResults({
             </Link>
           )}
         </div>
-        <Suspense>
-          <SortSelect />
-        </Suspense>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Suspense>
+            <SortSelect />
+          </Suspense>
+          {mapPoints.length > 0 && (
+            <a
+              href="#results-map"
+              className="inline-flex h-11 items-center text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              View map
+            </a>
+          )}
+        </div>
       </div>
 
       <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -124,12 +135,18 @@ async function PropertyResults({
 
       <Pagination filters={filters} page={page} hasNextPage={hasNextPage} />
 
-      <section aria-labelledby="map-heading" className="mt-16">
-        <h2 id="map-heading" className="mb-4 text-xl font-semibold">
-          On the map
-        </h2>
-        <PropertyMap points={toMapPoints(listings)} height={480} />
-      </section>
+      {mapPoints.length > 0 && (
+        <section
+          id="results-map"
+          aria-labelledby="map-heading"
+          className="mt-12 scroll-mt-24 border-t border-brass/55 pt-6"
+        >
+          <h2 id="map-heading" className="mb-4 font-display text-4xl">
+            On the map
+          </h2>
+          <PropertyMap points={mapPoints} height={480} />
+        </section>
+      )}
 
       <p className="mt-8 text-sm text-muted-foreground">
         Listing data from Realtor.com via RealtyAPI. Information is deemed

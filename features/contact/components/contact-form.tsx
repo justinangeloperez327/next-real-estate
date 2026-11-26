@@ -29,7 +29,7 @@ export function ContactForm() {
 
   if (state.status === "success") {
     return (
-      <div className="rounded-xl border bg-card p-6">
+      <div className="rounded-lg border border-t-2 border-t-brass bg-card p-6">
         <FormAlert status="success">{state.message}</FormAlert>
       </div>
     );
@@ -40,9 +40,9 @@ export function ContactForm() {
       {...draft.formProps}
       action={action}
       noValidate
-      className="space-y-5 rounded-xl border bg-card p-6 sm:p-8"
+      className="space-y-5 rounded-lg border border-t-2 border-t-brass bg-card p-4 sm:p-8"
     >
-      <h2 className="text-lg font-semibold">Send us a message</h2>
+      <h2 className="font-display text-3xl">Send us a message</h2>
       {draft.restored && <DraftNotice onDiscard={draft.discard} />}
       <div className="grid gap-6 sm:grid-cols-2">
         <FormField id="name" label="Name" error={v.errorFor("name")}>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 export default function CallToAction() {
   return (
-    <section className="border-t bg-accent">
+    <section className="border-t border-brass/55 bg-accent">
       <div className="container flex flex-col items-start gap-6 py-10 sm:flex-row sm:items-center sm:justify-between sm:py-14">
         <div>
           <h2 className="font-display text-3xl font-normal sm:text-4xl">

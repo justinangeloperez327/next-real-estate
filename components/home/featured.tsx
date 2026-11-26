@@ -12,7 +12,7 @@ import type { Listing } from "@/features/properties/types";
 export default function Featured() {
   return (
     <section className="container py-10 sm:py-16">
-      <div className="mb-6 flex flex-col gap-2 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-6 flex border-t border-brass/55 pt-5 flex-col gap-2 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="font-display text-4xl font-normal sm:text-5xl">
             New on the market

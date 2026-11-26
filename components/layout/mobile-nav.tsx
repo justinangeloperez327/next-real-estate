@@ -32,7 +32,7 @@ export function MobileNav({ auth }: { auth: React.ReactNode }) {
           </Button>
         </SheetTrigger>
       </WithTooltip>
-      <SheetContent side="right" className="w-72 overflow-y-auto">
+      <SheetContent side="right" className="public-theme w-72 overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Menu</SheetTitle>
           <SheetDescription className="sr-only">

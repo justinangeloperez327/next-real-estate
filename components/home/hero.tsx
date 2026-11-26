@@ -1,44 +1,37 @@
 import Image from "next/image";
-import Link from "next/link";
 import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import PropertySearch from "@/features/properties/components/property-search";
-import { DEFAULT_LOCATION } from "@/features/properties/constants";
 
 export default function Hero() {
   return (
-    <section className="bg-muted">
-      <div className="container grid items-center gap-8 py-8 sm:py-12 lg:grid-cols-[1fr_1.15fr] lg:gap-12 lg:py-16">
-        <div className="min-w-0 lg:py-6">
-          <h1 className="font-display text-5xl font-normal leading-[0.98] sm:text-6xl xl:text-7xl">
+    <section className="grid bg-primary text-primary-foreground lg:grid-cols-[0.95fr_1.05fr]">
+      <div className="flex min-w-0 items-center px-4 py-12 sm:px-8 lg:col-start-1 lg:row-start-1 lg:py-24 lg:pl-[max(3rem,calc((100vw-1224px)/2))]">
+        <div className="max-w-xl border-t border-brass pt-5">
+          <h1 className="font-display text-6xl leading-[0.92] sm:text-7xl xl:text-[6rem]">
             Find a place to call home.
           </h1>
-          <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Explore homes for sale and rent. Start with a city, ZIP code, or
-            neighborhood.
+          <p className="mt-5 max-w-sm text-base leading-relaxed text-primary-foreground/85 sm:text-lg">
+            Explore homes for sale and rent by city, ZIP code, or neighborhood.
           </p>
-
-          <div className="mt-7">
-            <Suspense fallback={<div className="h-48 rounded-xl bg-card" />}>
-              <PropertySearch compact />
-            </Suspense>
-          </div>
-          <Link
-            href="/properties"
-            className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:decoration-current"
-          >
-            Browse homes in {DEFAULT_LOCATION}
-          </Link>
         </div>
-        <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-accent sm:aspect-[16/10] lg:aspect-[5/4]">
-          <Image
-            src="/images/properties/1.jpeg"
-            alt=""
-            fill
-            preload
-            sizes="(min-width: 1280px) 620px, (min-width: 1024px) 52vw, 100vw"
-            className="object-cover"
-          />
+      </div>
+      <div className="relative z-10 px-4 pb-5 text-foreground sm:px-8 lg:col-span-2 lg:row-start-2 lg:bg-background lg:pb-0">
+        <div className="mx-auto max-w-5xl lg:-mt-12">
+          <Suspense fallback={<Skeleton className="h-44 bg-card sm:h-28" />}>
+            <PropertySearch compact />
+          </Suspense>
         </div>
+      </div>
+      <div className="relative aspect-[16/9] lg:col-start-2 lg:row-start-1 lg:aspect-auto">
+        <Image
+          src="/images/properties/1.jpeg"
+          alt=""
+          fill
+          preload
+          sizes="(min-width: 1024px) 53vw, 100vw"
+          className="object-cover object-center"
+        />
       </div>
     </section>
   );

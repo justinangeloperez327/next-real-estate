@@ -28,8 +28,7 @@ export async function sendContactMessage(
     console.error("sendContactMessage failed:", error);
     return {
       status: "error",
-      message:
-        "We couldn't send your message. Try again, or email us at hello@example.com.",
+      message: "We couldn't send your message. Please try again.",
       values: form.values,
     };
   }
