@@ -1,8 +1,8 @@
 # JUSTIN · Real Estate
 
-A real-estate listing site. Listings come from Realtor.com via
-[RealtyAPI](https://www.realtyapi.io/); Supabase handles sign-in and contact
-messages, which admins read in a small dashboard.
+A real-estate demo with a monthly listing sample from Realtor.com via
+[RealtyAPI](https://www.realtyapi.io/). Supabase stores the sample and handles
+sign-in and contact messages.
 
 Demo: [justin-real-estate.vercel.app](https://justin-real-estate.vercel.app/)
 
@@ -10,43 +10,47 @@ Demo: [justin-real-estate.vercel.app](https://justin-real-estate.vercel.app/)
 
 - Next.js 16 (App Router, `proxy.ts`, typed routes) · React 19
 - RealtyAPI (Realtor.com provider) for listings, photos, agents, schools
-- Supabase (auth + contact messages) via `@supabase/ssr`
+- Supabase (property snapshot, auth and contact messages) via `@supabase/ssr`
 - Tailwind CSS 4 · shadcn/ui · lucide-react
 - Zod 4 for form validation · Mapbox (react-map-gl) for maps
 - Node.js 24 (Vercel default)
 
 ## Getting started
 
-1. Copy `.env.example` to `.env.local` and fill in the Supabase, RealtyAPI
-   and Mapbox values. Add the same variables in Vercel (Project Settings →
-   Environment Variables). `REALTYAPI_KEY` is server-only.
-2. Apply `supabase/migrations/20261124000000_contact_messages.sql` (Supabase
-   SQL editor or `supabase db push`). It creates the `contact_messages`
-   table used by the contact form. (The older `properties` migration is no
-   longer used: listings now come from RealtyAPI. The `properties` table can
-   be dropped.)
+1. Copy `.env.example` to `.env.local` and set the Supabase URL and anon key.
+   Add them to Vercel as well. Mapbox and a default market are optional.
+2. Apply the Supabase migrations in filename order with your usual migration
+   workflow. For an existing database that already has contact messages, the
+   new migration is `supabase/migrations/20261126060000_property_snapshots.sql`.
 3. Install and run:
 
    ```bash
-   npm install
+   npm ci
    npm run dev
    ```
 
-## Listing data (RealtyAPI)
+## Monthly property import
 
-- Provider: Realtor.com (`https://realtor.realtyapi.io`), authenticated with
-  the `x-realtyapi-key` header. The client lives in `lib/realtyapi/`, and
-  `features/properties/normalize.ts` maps raw responses to the app's
-  `Listing` type.
-- Endpoints: `/search/bylocation` (listing page, featured row) and
-  `/details/byid` (property page).
-- **Credits:** every request costs plan credits (the free plan is 250 per
-  month). All reads are cached for hours with `"use cache"` and shared
-  across visitors, so repeat views are free. The sitemap lists static pages
-  only so crawlers don't spend credits.
-- The default market (`NEXT_PUBLIC_DEFAULT_LOCATION`, "Austin, TX" if unset)
-  is shown when nobody has searched.
-- Photos are served from `*.rdcpix.com` through `next/image`.
+The homepage, search and detail pages read the stored sample from Supabase.
+The importer takes up to 24 homes for sale and 24 rental homes in one market
+(Austin, TX by default). A full import uses at most 50 RealtyAPI requests per
+attempt: two searches and up to 48 detail requests. The app serves the previous
+snapshot if a refresh fails.
+
+1. Add these GitHub Actions repository secrets:
+   `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `REALTYAPI_KEY`.
+   The service role and provider keys are for the importer only.
+2. To use a different market, set the Actions repository variable
+   `NEXT_PUBLIC_DEFAULT_LOCATION` to the same value as the web app.
+3. Run **Import property snapshot** manually in GitHub Actions for the first
+   import. Scheduled runs start on the first day of each month at 01:17 UTC
+   (05:17 UAE time). A completed month is skipped before any provider calls.
+   To run locally, put the same values in `.env.local` and use
+   `npm run properties:import`.
+
+The importer saves listing data and photo URLs. Photos still load from the
+existing image host. Listings are a sample and prices and availability can change
+between imports.
 
 ## Admin access
 
@@ -75,7 +79,7 @@ app/
   auth/callback/      Supabase email-link handler
   sitemap.ts, robots.ts
 features/
-  properties/         RealtyAPI queries (cached), normalize, filters, components
+  properties/         Supabase queries, snapshot filters, normalization, components
   auth/               session, roles, schema, actions, form components
   contact/            contact form, schema, action, admin queries
 components/
@@ -98,22 +102,19 @@ Every form follows the same pattern: a zod schema, a server action that
 calls `validateForm()` and returns a `FormState`, and a client component
 using `useActionState` with the shared `FormField` / `FormAlert` /
 `SubmitButton`. Errors show inline next to each field, typed values are
-kept (passwords never are), and nothing is passed through the URL.
+kept (passwords never are), and listing enquiries carry the listing reference through the URL.
 
 ## Performance
 
 - **Cache Components / partial prerendering**: pages ship a static HTML shell
   from the CDN; listings stream in from the data cache.
-- **Cached reads**: RealtyAPI searches and details use `"use cache"`
-  (`listings` tag, hours lifetime), which also keeps API credit use low.
+- **Cached reads**: Supabase listing summaries and details use the Next.js
+  data cache. The monthly import is the only code path that calls RealtyAPI.
 - **No auth round-trips on public pages**: the proxy only runs on
   `/dashboard` and the auth pages, and uses `getClaims()` (local JWT
   verification) instead of `getUser()`.
 - **Lazy Mapbox**: the 1.9 MB map bundle loads only when a map scrolls into
   view.
-- **Hero video**: 2 MB 720p loop with a poster image.
-- **Region**: RealtyAPI and the listings are US-based; a US region for
-  Vercel Functions (Project Settings → Functions) keeps API calls short.
 
 ## Deploying
 
@@ -132,15 +133,16 @@ branches only, for example `{ "main": true }`.
 
 ## Scripts
 
-| Command             | Description                                 |
-| ------------------- | ------------------------------------------- |
-| `npm run dev`       | Start the dev server (Turbopack)            |
-| `npm run build`     | Production build                            |
-| `npm run lint`      | ESLint (Next.js core-web-vitals + TS rules) |
-| `npm run typecheck` | Generate route types and run `tsc`          |
-| `npm test`          | Unit tests (Vitest)                         |
-| `npm run check`     | Lint + typecheck + tests                    |
-| `npm run format`    | Format with Prettier                        |
+| Command                     | Description                                 |
+| --------------------------- | ------------------------------------------- |
+| `npm run dev`               | Start the dev server (Turbopack)            |
+| `npm run build`             | Production build                            |
+| `npm run lint`              | ESLint (Next.js core-web-vitals + TS rules) |
+| `npm run typecheck`         | Generate route types and run `tsc`          |
+| `npm test`                  | Unit tests (Vitest)                         |
+| `npm run properties:import` | Import this month’s property sample         |
+| `npm run check`             | Lint + typecheck + tests                    |
+| `npm run format`            | Format with Prettier                        |
 
 CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests, format check
 and a production build on every pull request.

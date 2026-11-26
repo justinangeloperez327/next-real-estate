@@ -33,7 +33,8 @@ export default function PropertiesPage({
             Homes for sale and rent
           </h1>
           <p className="mt-3 text-muted-foreground sm:text-lg">
-            Search by US city, ZIP code, or neighborhood.
+            Search the monthly sample of listings by city, ZIP code, or
+            neighborhood.
           </p>
           <div className="mt-6">
             <Suspense fallback={<Skeleton className="h-36 rounded-xl" />}>
@@ -88,8 +89,8 @@ async function PropertyResults({
           No homes match your search
         </h2>
         <p className="mx-auto mt-2 max-w-md text-muted-foreground">
-          Check the spelling of the location, or try a wider price range or
-          fewer filters.
+          Try a wider price range or fewer filters. This demo only shows the
+          listings saved in its monthly sample.
         </p>
         <Button asChild variant="outline" className="mt-6">
           <Link href="/properties">Clear all filters</Link>
@@ -155,8 +156,8 @@ async function PropertyResults({
       )}
 
       <p className="mt-8 text-sm text-muted-foreground">
-        Listing data from Realtor.com via RealtyAPI. Information is deemed
-        reliable but not guaranteed.
+        Monthly listing sample from Realtor.com via RealtyAPI. Prices and
+        availability may have changed.
       </p>
     </>
   );

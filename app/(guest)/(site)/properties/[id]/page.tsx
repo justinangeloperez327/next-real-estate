@@ -432,8 +432,8 @@ function ContactCard({
       </div>
       {listing.listedAt && (
         <p className="mt-4 text-xs text-muted-foreground">
-          Listed {formatDate(listing.listedAt)}. Data from Realtor.com via
-          RealtyAPI.
+          Listed {formatDate(listing.listedAt)}. Monthly sample from Realtor.com
+          via RealtyAPI. Availability may have changed.
         </p>
       )}
     </div>

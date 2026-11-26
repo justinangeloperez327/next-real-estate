@@ -1,0 +1,31 @@
+name: Import property snapshot
+
+on:
+  schedule:
+    - cron: "17 1 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monthly-property-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      REALTYAPI_KEY: ${{ secrets.REALTYAPI_KEY }}
+      NEXT_PUBLIC_DEFAULT_LOCATION: ${{ vars.NEXT_PUBLIC_DEFAULT_LOCATION }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run properties:import

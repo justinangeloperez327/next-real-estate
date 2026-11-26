@@ -4,12 +4,12 @@ const BASE_URL = "https://realtor.realtyapi.io";
 const TIMEOUT_MS = 15_000;
 
 export class RealtyApiError extends Error {
-  constructor(
-    message: string,
-    readonly status?: number,
-  ) {
+  readonly status?: number;
+
+  constructor(message: string, status?: number) {
     super(message);
     this.name = "RealtyApiError";
+    this.status = status;
   }
 }
 
@@ -19,7 +19,7 @@ type Query = Record<string, string | number | boolean | undefined>;
  * GET a RealtyAPI (Realtor.com provider) endpoint.
  * Auth is the `x-realtyapi-key` header; the key lives only on the server
  * (REALTYAPI_KEY) and is never sent to the browser.
- * Every request costs plan credits, so callers should cache results.
+ * Used by the monthly importer. Every request counts toward the quota.
  */
 export async function realtyGet<T>(
   path: string,

@@ -15,10 +15,10 @@ export default function Featured() {
       <div className="mb-6 flex border-t border-brass/55 pt-5 flex-col gap-2 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="font-display text-4xl font-normal sm:text-5xl">
-            New on the market
+            Featured homes
           </h2>
           <p className="mt-2 text-muted-foreground">
-            The latest homes for sale in {DEFAULT_LOCATION}.
+            Recent homes for sale from the monthly sample in {DEFAULT_LOCATION}.
           </p>
         </div>
         <Link
@@ -48,14 +48,14 @@ async function FeaturedListings() {
     console.error("Featured properties failed to load:", error);
     return (
       <FeaturedNotice>
-        New listings couldn’t be loaded right now.
+        Saved listings couldn’t be loaded right now.
       </FeaturedNotice>
     );
   }
   if (listings.length === 0) {
     return (
       <FeaturedNotice>
-        No new listings are available in {DEFAULT_LOCATION} right now.
+        The monthly sample for {DEFAULT_LOCATION} has no homes for sale yet.
       </FeaturedNotice>
     );
   }
